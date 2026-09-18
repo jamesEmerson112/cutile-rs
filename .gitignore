@@ -13,3 +13,6 @@ scratch
 temp
 *~
 scripts/publish.sh
+
+# Claude Code per-machine permission overrides; created on every machine that runs it, including the pod.
+.claude/settings.local.json
