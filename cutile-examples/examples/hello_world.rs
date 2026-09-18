@@ -40,6 +40,6 @@ fn main() -> Result<(), Error> {
     let device = Device::new(0)?;
     let stream = device.new_stream()?;
     let launcher = hello_world_kernel();
-    launcher.grid((1, 1, 1)).sync_on(&stream)?;
+    launcher.grid((2, 2, 1)).sync_on(&stream)?;
     Ok(())
 }
