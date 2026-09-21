@@ -23,13 +23,17 @@ mod hello_world_module {
         let n1 = num_programs(1);
         let n2 = num_programs(2);
         cuda_tile_print!(
-            "Hello, I am program <{}, {}, {}> in a kernel with <{}, {}, {}> programs.\n",
+            "Hello, I am program <{}, {}, {},{}, {}> in a kernel with <{}, {}, {}, {}, {}> programs.\n",
             pid0,
             pid1,
             pid2,
+            pid3,
+            pid4,
             n0,
             n1,
-            n2
+            n2,
+            n3,
+            n4
         );
     }
 }
@@ -40,6 +44,6 @@ fn main() -> Result<(), Error> {
     let device = Device::new(0)?;
     let stream = device.new_stream()?;
     let launcher = hello_world_kernel();
-    launcher.grid((2, 2, 1)).sync_on(&stream)?;
+    launcher.grid((2, 2, 1, 1, 1)).sync_on(&stream)?;
     Ok(())
 }

@@ -1,0 +1,918 @@
+<title>hello_world, Annotated</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Serif:wght@500;600&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<style>
+  :root {
+    --paper: #f5f7f3;
+    --grid: #e2e7de;
+    --surface: #ffffff;
+    --ink: #1b221f;
+    --ink-2: #4d5752;
+    --rule: #ccd4c9;
+    --mark: #fff0b3;
+    --build: #3a5a8c;
+    --build-soft: #e6ecf6;
+    --build-ink: #2a446e;
+    --run: #3d7a1f;
+    --run-soft: #e5f1da;
+    --run-ink: #2c5b13;
+    --on-run: #ffffff;
+    --term-bg: #1a201e;
+    --term-ink: #d8e6d2;
+    --serif: "IBM Plex Serif", Georgia, "Times New Roman", serif;
+    --sans: "IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+    --mono: "IBM Plex Mono", Consolas, "Courier New", monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --paper: #121716;
+      --grid: #1c2422;
+      --surface: #1a211f;
+      --ink: #e3e9e3;
+      --ink-2: #a4aea7;
+      --rule: #2e3835;
+      --mark: #4a4320;
+      --build: #8fb1e6;
+      --build-soft: #1c2a3d;
+      --build-ink: #bdd1f1;
+      --run: #8fd14f;
+      --run-soft: #1e3016;
+      --run-ink: #b8e88d;
+      --on-run: #0c100f;
+      --term-bg: #0c100f;
+      --term-ink: #cfe0c8;
+    }
+  }
+  :root[data-theme="dark"] {
+    --paper: #121716;
+    --grid: #1c2422;
+    --surface: #1a211f;
+    --ink: #e3e9e3;
+    --ink-2: #a4aea7;
+    --rule: #2e3835;
+    --mark: #4a4320;
+    --build: #8fb1e6;
+    --build-soft: #1c2a3d;
+    --build-ink: #bdd1f1;
+    --run: #8fd14f;
+    --run-soft: #1e3016;
+    --run-ink: #b8e88d;
+    --on-run: #0c100f;
+    --term-bg: #0c100f;
+    --term-ink: #cfe0c8;
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: var(--sans);
+    font-size: 17px;
+    line-height: 1.55;
+    color: var(--ink);
+    background-color: var(--paper);
+    background-image:
+      linear-gradient(var(--grid) 1px, transparent 1px),
+      linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+    background-size: 32px 32px;
+  }
+  .page { max-width: 1040px; margin: 0 auto; padding: 40px 24px 80px; }
+  .prose { max-width: 68ch; }
+  h1, h2, h3 { font-family: var(--serif); font-weight: 600; text-wrap: balance; margin: 0; }
+  h1 { font-size: 2.4rem; line-height: 1.1; }
+  h2 { font-size: 1.5rem; margin-top: 60px; margin-bottom: 12px; padding-top: 8px; }
+  h3 { font-size: 1.1rem; margin-top: 28px; margin-bottom: 8px; }
+  p { margin: 0 0 14px; }
+  code { font-family: var(--mono); font-size: 0.92em; background: var(--surface); border: 1px solid var(--rule); padding: 0 4px; border-radius: 3px; }
+  pre code { background: none; border: 0; padding: 0; font-size: inherit; }
+  a { color: var(--build-ink); }
+  .eyebrow { font-family: var(--mono); font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--ink-2); margin-bottom: 10px; }
+  header .prose p { font-size: 1.05rem; color: var(--ink-2); margin-top: 14px; }
+  nav.toc { display: flex; flex-wrap: wrap; gap: 6px 18px; margin: 18px 0 0; font-size: 0.9rem; }
+  nav.toc a { text-decoration: none; border-bottom: 1px solid var(--rule); }
+  nav.toc a:hover { border-color: var(--build); }
+
+  .legend { display: flex; flex-wrap: wrap; gap: 8px 20px; margin: 18px 0 0; font-size: 0.9rem; color: var(--ink-2); }
+  .legend span::before { content: ""; display: inline-block; width: 12px; height: 12px; border-radius: 2px; margin-right: 7px; vertical-align: -1px; }
+  .legend .lb::before { background: var(--build); }
+  .legend .lr::before { background: var(--run); }
+  .legend .lh::before { border: 2px solid var(--ink-2); width: 8px; height: 8px; }
+
+  /* Annotated source */
+  .annot { display: grid; grid-template-columns: minmax(0, 1.35fr) minmax(280px, 1fr); gap: 20px; align-items: start; margin-top: 16px; }
+  @media (max-width: 880px) { .annot { grid-template-columns: 1fr; } }
+  .src {
+    margin: 0; background: var(--surface); border: 1px solid var(--rule); border-radius: 4px;
+    padding: 14px 16px; overflow-x: auto; font-family: var(--mono); font-size: 13px; line-height: 1.6;
+    font-variant-numeric: tabular-nums;
+  }
+  .src .ln { display: inline-block; width: 2.5ch; margin-right: 1.4ch; text-align: right; color: var(--ink-2); opacity: 0.7; user-select: none; }
+  mark.m { background: transparent; color: inherit; border-bottom: 2px solid var(--build); padding-bottom: 1px; border-radius: 0; }
+  mark.m.g { border-color: var(--run); }
+  mark.m.h { border-color: var(--ink-2); border-bottom-style: dotted; }
+  mark.m.hot { background: var(--mark); }
+  .bd {
+    display: inline-block; font-family: var(--mono); font-size: 10px; font-weight: 600; line-height: 16px;
+    min-width: 16px; text-align: center; border-radius: 8px; color: var(--surface); background: var(--build);
+    vertical-align: super; margin-left: 2px; padding: 0 3px; user-select: none;
+  }
+  .bd.g { background: var(--run); }
+  .bd.h { background: var(--ink-2); }
+  ol.notes { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
+  ol.notes li { display: grid; grid-template-columns: 24px 1fr; gap: 10px; padding: 8px 10px; border-radius: 4px; border: 1px solid transparent; font-size: 0.93rem; line-height: 1.45; cursor: default; }
+  ol.notes li:hover, ol.notes li:focus-within, ol.notes li.hot { background: var(--surface); border-color: var(--rule); }
+  ol.notes .bd { vertical-align: baseline; margin: 3px 0 0; justify-self: center; }
+  ol.notes b { font-family: var(--mono); font-weight: 600; font-size: 0.85rem; display: block; margin-bottom: 2px; }
+  .ck { font-family: var(--mono); font-weight: 600; font-size: 0.7rem; letter-spacing: 0.06em; padding: 0 5px; border-radius: 3px; border: 1px solid var(--rule); color: var(--ink-2); margin-right: 4px; vertical-align: 1px; }
+
+  /* Rust line by line */
+  .rl { display: grid; gap: 14px; margin-top: 14px; }
+  .rl > div { background: var(--surface); border: 1px solid var(--rule); border-radius: 4px; padding: 12px 14px; }
+  .rl .rl-code { display: block; font-family: var(--mono); font-size: 0.88rem; font-weight: 600; margin-bottom: 6px; background: none; border: 0; padding: 0; white-space: pre-wrap; }
+  .rl p { font-size: 0.95rem; margin-bottom: 8px; }
+  .rl p:last-child { margin-bottom: 0; }
+  .rl pre { margin: 6px 0 10px; }
+  pre.ex { background: var(--paper); border: 1px solid var(--rule); border-radius: 4px; padding: 10px 12px; font-family: var(--mono); font-size: 12.5px; line-height: 1.55; overflow-x: auto; margin: 0; }
+
+  /* Stepper */
+  .lanes { display: flex; flex-direction: column; gap: 0; margin-top: 18px; }
+  .lane { border-left: 4px solid var(--lane); background: var(--lane-soft); padding: 12px 14px 14px; border-radius: 0 4px 4px 0; }
+  .lane.build { --lane: var(--build); --lane-soft: var(--build-soft); --lane-ink: var(--build-ink); }
+  .lane.run { --lane: var(--run); --lane-soft: var(--run-soft); --lane-ink: var(--run-ink); }
+  .lane .eyebrow { color: var(--lane-ink); margin-bottom: 8px; }
+  .flow { display: flex; flex-wrap: wrap; gap: 6px; align-items: stretch; }
+  .chip {
+    flex: 1 1 120px; max-width: 190px; text-align: left; background: var(--surface); border: 1px solid var(--rule); border-radius: 4px;
+    padding: 7px 10px; cursor: pointer; font-family: var(--sans); color: var(--ink); display: flex; flex-direction: column; gap: 1px;
+  }
+  .chip b { font-family: var(--mono); font-weight: 600; font-size: 0.82rem; color: var(--lane-ink); }
+  .chip span { font-size: 0.76rem; color: var(--ink-2); line-height: 1.3; }
+  .chip:hover { border-color: var(--lane); }
+  .chip.cur { border-color: var(--lane); box-shadow: inset 0 0 0 1px var(--lane); }
+  .chip:focus-visible { outline: 2px solid var(--build); outline-offset: 2px; }
+  .arrow { align-self: center; color: var(--lane); font-family: var(--mono); font-size: 1rem; user-select: none; }
+  .handoff { display: grid; grid-template-columns: 24px 1fr; gap: 12px; align-items: center; padding: 10px 16px 10px 12px; font-size: 0.93rem; color: var(--ink-2); }
+  .handoff .v { font-family: var(--mono); font-size: 1.4rem; color: var(--run); text-align: center; line-height: 1; }
+
+  .stepnav { display: flex; flex-wrap: wrap; gap: 10px 14px; align-items: center; margin-top: 16px; font-size: 0.9rem; }
+  .stepnav .pos { font-family: var(--mono); font-size: 0.8rem; color: var(--ink-2); }
+  .stepnav label { display: flex; align-items: center; gap: 6px; margin-left: auto; color: var(--ink-2); }
+  button { font-family: var(--mono); font-size: 0.88rem; cursor: pointer; border-radius: 4px; padding: 6px 12px; border: 1px solid var(--rule); background: var(--surface); color: var(--ink); }
+  button.primary { background: var(--run); border-color: var(--run); color: var(--on-run); font-weight: 600; }
+  button:disabled { opacity: 0.45; cursor: default; }
+  button:focus-visible, select:focus-visible, input:focus-visible { outline: 2px solid var(--build); outline-offset: 2px; }
+  .panel { background: var(--surface); border: 1px solid var(--rule); border-radius: 4px; padding: 16px 18px 18px; margin-top: 12px; border-top: 4px solid var(--lane, var(--rule)); }
+  .panel.build { --lane: var(--build); --lane-ink: var(--build-ink); }
+  .panel.run { --lane: var(--run); --lane-ink: var(--run-ink); }
+  .panel .ph { display: flex; flex-wrap: wrap; gap: 8px 12px; align-items: baseline; margin-bottom: 8px; }
+  .panel .ph h3 { margin: 0; font-size: 1.15rem; }
+  .panel .owner { font-family: var(--mono); font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--lane-ink); border: 1px solid currentColor; border-radius: 3px; padding: 1px 6px; }
+  .panel .what { max-width: 72ch; font-size: 0.96rem; }
+  .panel .lbl { font-family: var(--mono); font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--ink-2); margin: 14px 0 6px; display: flex; gap: 8px; align-items: center; }
+  .panel .lbl .real { color: var(--run-ink); background: var(--run-soft); border-radius: 3px; padding: 0 6px; text-transform: none; letter-spacing: 0; }
+  .panel .lbl .illus { color: var(--build-ink); background: var(--build-soft); border-radius: 3px; padding: 0 6px; text-transform: none; letter-spacing: 0; }
+  .panel .cousin { font-size: 0.93rem; max-width: 72ch; }
+  .panel .full { font-size: 0.85rem; margin-top: 6px; color: var(--ink-2); }
+  .raw ul { list-style: none; padding: 0; margin: 8px 0 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 6px 20px; }
+  .raw li { font-size: 0.9rem; }
+  .raw a { font-family: var(--mono); font-size: 0.85rem; }
+  .all .panel { margin-top: 14px; }
+
+  /* Tables */
+  table { border-collapse: collapse; width: 100%; font-size: 0.93rem; margin-top: 12px; }
+  .tablewrap { overflow-x: auto; }
+  th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--rule); vertical-align: top; }
+  th { font-family: var(--mono); font-weight: 600; font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--ink-2); }
+  td.b { color: var(--build-ink); font-weight: 500; }
+  td.g { color: var(--run-ink); font-weight: 500; }
+  td.c { color: var(--ink-2); }
+
+  /* Grid explorer */
+  .explorer { display: grid; grid-template-columns: minmax(220px, 1fr) minmax(0, 1.6fr); gap: 20px; align-items: start; margin-top: 16px; }
+  @media (max-width: 760px) { .explorer { grid-template-columns: 1fr; } }
+  .controls { display: flex; flex-wrap: wrap; gap: 10px 16px; align-items: end; margin-bottom: 14px; font-size: 0.9rem; }
+  .controls label { display: flex; flex-direction: column; gap: 3px; font-family: var(--mono); font-size: 0.78rem; color: var(--ink-2); }
+  select { font-family: var(--mono); font-size: 0.9rem; color: var(--ink); background: var(--surface); border: 1px solid var(--rule); border-radius: 4px; padding: 5px 8px; }
+  .axes { font-family: var(--mono); font-size: 0.75rem; color: var(--ink-2); display: grid; grid-template-columns: 22px 1fr; grid-template-rows: 18px 1fr; gap: 4px; }
+  .axes .ax { grid-column: 2; text-align: center; }
+  .axes .ay { grid-row: 2; writing-mode: vertical-rl; transform: rotate(180deg); text-align: center; }
+  .cells { grid-column: 2; grid-row: 2; display: grid; gap: 6px; }
+  .cell {
+    aspect-ratio: 1; display: flex; align-items: center; justify-content: center;
+    font-family: var(--mono); font-size: 0.85rem; border: 1px solid var(--run); border-radius: 3px;
+    background: var(--run-soft); color: var(--run-ink); transition: background 200ms, color 200ms;
+  }
+  .cell.lit { background: var(--run); color: var(--on-run); }
+  .term {
+    margin: 0; background: var(--term-bg); color: var(--term-ink); font-family: var(--mono); font-size: 12.5px; line-height: 1.6;
+    padding: 12px 14px; border-radius: 4px; min-height: 9.5em; overflow-x: auto; white-space: pre;
+  }
+  .term .dim { opacity: 0.55; }
+  .caption { font-size: 0.85rem; color: var(--ink-2); margin-top: 8px; }
+  @media (prefers-reduced-motion: reduce) { .cell { transition: none; } }
+
+  /* Glossary */
+  .gloss { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 14px 28px; margin: 12px 0 0; }
+  .gloss dt { font-family: var(--mono); font-weight: 600; font-size: 0.92rem; display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+  .gloss dd { margin: 4px 0 0; font-size: 0.93rem; line-height: 1.45; color: var(--ink); }
+  .gloss dd .cc { display: block; margin-top: 3px; color: var(--ink-2); }
+  .tag { font-family: var(--mono); font-weight: 600; font-size: 0.66rem; text-transform: uppercase; letter-spacing: 0.06em; padding: 1px 6px; border-radius: 3px; }
+  .tag.b { background: var(--build-soft); color: var(--build-ink); }
+  .tag.g { background: var(--run-soft); color: var(--run-ink); }
+  .tag.h { border: 1px solid var(--rule); color: var(--ink-2); }
+
+  .aside { border: 1px solid var(--rule); background: var(--surface); border-radius: 4px; padding: 14px 16px; margin-top: 18px; font-size: 0.95rem; }
+  .aside h3 { margin-top: 0; }
+  .aside ul { margin: 6px 0 0; padding-left: 20px; }
+  .aside li { margin-bottom: 4px; }
+  pre.cmd { margin: 8px 0 0; background: var(--term-bg); color: var(--term-ink); font-family: var(--mono); font-size: 12.5px; line-height: 1.6; padding: 12px 14px; border-radius: 4px; overflow-x: auto; }
+  footer { margin-top: 56px; font-size: 0.85rem; color: var(--ink-2); border-top: 1px solid var(--rule); padding-top: 14px; max-width: 72ch; }
+</style>
+
+<div class="page">
+  <header>
+    <div class="eyebrow">cutile-rs · learning note · 2026-09-17</div>
+    <h1>hello_world, Annotated</h1>
+    <div class="prose">
+      <p>What every word in <code>cutile-examples/examples/hello_world.rs</code> means, and where each one lives on the trip from a Rust file to a line printed by a GPU. Every excerpt marked "real" was produced on the RunPod pod (RTX PRO 4000 Blackwell, compute capability 12.0) with the grid set to (2, 2, 1). Comparisons lean on C and CUDA C, since that is the language the GPU world grew up in.</p>
+    </div>
+    <nav class="toc">
+      <a href="#source">Source with callouts</a>
+      <a href="#rust">The Rust in main</a>
+      <a href="#pipeline">Two compilers, step by step</a>
+      <a href="#fleet">A fleet on a grid</a>
+      <a href="#glossary">Glossary</a>
+      <a href="#try">Try on the pod</a>
+    </nav>
+    <div class="legend">
+      <span class="lb">build time, on the CPU, by rustc</span>
+      <span class="lr">run time, on or for the GPU</span>
+      <span class="lh">run time, on the CPU, by the host program</span>
+    </div>
+  </header>
+
+  <h2 id="source">The source, with callouts</h2>
+  <div class="prose"><p>Hover a note to light up the code it explains. The underline color says which stage owns the thing: blue is handled when you build, green is handled on or for the GPU, dotted grey is ordinary host Rust that runs on the CPU.</p></div>
+  <div class="annot">
+<pre class="src" id="src"><span class="ln">7</span>use cuda_async::device_operation::DeviceOp;
+<span class="ln">8</span>use cuda_core::Device;
+<span class="ln">9</span>use cutile::error::Error;
+<span class="ln">10</span>use cutile::tile_kernel::TileKernel;
+<span class="ln">11</span>
+<span class="ln">12</span><mark class="m" data-n="1">#[cutile::module]</mark><span class="bd">1</span>
+<span class="ln">13</span><mark class="m" data-n="2">mod hello_world_module</mark><span class="bd">2</span> {
+<span class="ln">14</span>
+<span class="ln">15</span>    <mark class="m" data-n="3">use cutile::core::*;</mark><span class="bd">3</span>
+<span class="ln">16</span>
+<span class="ln">17</span>    <mark class="m g" data-n="4">#[cutile::entry(print_ir = true)]</mark><span class="bd g">4</span>
+<span class="ln">18</span>    fn hello_world_kernel() {
+<span class="ln">19</span>        let pid0 = <mark class="m g" data-n="5">program_id(0)</mark><span class="bd g">5</span>;
+<span class="ln">20</span>        let pid1 = program_id(1);
+<span class="ln">21</span>        let pid2 = program_id(2);
+<span class="ln">22</span>        let n0 = <mark class="m g" data-n="5">num_programs(0)</mark>;
+<span class="ln">23</span>        let n1 = num_programs(1);
+<span class="ln">24</span>        let n2 = num_programs(2);
+<span class="ln">25</span>        <mark class="m g" data-n="6">cuda_tile_print!</mark><span class="bd g">6</span>(
+<span class="ln">26</span>            "Hello, I am program &lt;{}, {}, {}&gt; in a kernel with &lt;{}, {}, {}&gt; programs.\n",
+<span class="ln">27</span>            pid0,
+<span class="ln">28</span>            pid1,
+<span class="ln">29</span>            pid2,
+<span class="ln">30</span>            n0,
+<span class="ln">31</span>            n1,
+<span class="ln">32</span>            n2
+<span class="ln">33</span>        );
+<span class="ln">34</span>    }
+<span class="ln">35</span>}
+<span class="ln">36</span>
+<span class="ln">37</span><mark class="m" data-n="7">use hello_world_module::hello_world_kernel;</mark><span class="bd">7</span>
+<span class="ln">38</span>
+<span class="ln">39</span>fn main() -&gt; Result&lt;(), Error&gt; {
+<span class="ln">40</span>    let device = Device::new(0)?;
+<span class="ln">41</span>    let stream = <mark class="m h" data-n="8">device.new_stream()</mark><span class="bd h">8</span>?;
+<span class="ln">42</span>    let launcher = <mark class="m h" data-n="9">hello_world_kernel()</mark><span class="bd h">9</span>;
+<span class="ln">43</span>    launcher<mark class="m h" data-n="10">.grid((2, 2, 1))</mark><span class="bd h">10</span><mark class="m g" data-n="11">.sync_on(&amp;stream)?</mark><span class="bd g">11</span>;
+<span class="ln">44</span>    Ok(())
+<span class="ln">45</span>}</pre>
+    <ol class="notes" id="notes">
+      <li data-n="1" tabindex="0"><span class="bd">1</span><div><b>attribute, procedural macro</b>Anything written <code>#[...]</code> above an item is an attribute. This one names a procedural macro in the cutile crate: a Rust function that runs inside the compiler, receives the whole module below it as tokens, and hands back rewritten Rust. What rustc compiles is the rewritten version. <span class="ck">C</span>Closest is <code>__attribute__((..))</code> for the syntax, and <code>#define</code> for the rewriting, except a C macro is textual paste before the compiler runs, while this one runs inside the compiler on parsed tokens.</div></li>
+      <li data-n="2" tabindex="0"><span class="bd">2</span><div><b>mod, the boundary</b>In plain Rust a module is a namespace and a privacy unit. Here it also draws the line the macro needs: inside is GPU code the macro owns, outside is ordinary host Rust. A module is the largest item an attribute can attach to, which is why cuTile asks for one. <span class="ck">C</span>C has no modules; the nearest thing is one <code>.c</code> file with <code>static</code> for private functions and a header for the public ones.</div></li>
+      <li data-n="3" tabindex="0"><span class="bd">3</span><div><b>scoped imports</b>The GPU ops come in here, so <code>program_id</code> means the GPU op inside the module and nothing outside it. The JIT also reads these <code>use</code> lines to learn which cuTile modules the kernel depends on. <span class="ck">C</span>An <code>#include</code> that only applies inside one block, which C cannot express.</div></li>
+      <li data-n="4" tabindex="0"><span class="bd g">4</span><div><b>entry marks the kernel</b>This function runs on the GPU. The macro also generates a host-side launcher with the same name. <code>print_ir = true</code> prints the Tile IR the JIT produces at the first launch, which is the block that scrolls past before the hello lines. <span class="ck">C</span><code>__global__ void hello_world_kernel()</code> in CUDA C.</div></li>
+      <li data-n="5" tabindex="0"><span class="bd g">5</span><div><b>which copy am I</b>Every program runs this same body and asks for its own index on each of three axes. <code>num_programs</code> returns the grid size on that axis. In the GPU machine code these become reads of the <code>SR_CTAID</code> hardware registers (see the cubin stage below). <span class="ck">C</span><code>blockIdx.x</code> and <code>gridDim.x</code>.</div></li>
+      <li data-n="6" tabindex="0"><span class="bd g">6</span><div><b>a print that runs on the GPU</b>A macro that lowers to the <code>print_tko</code> Tile IR op. The GPU formats and emits the line itself, which is why the lines arrive in scheduling order, not source order. <span class="ck">C</span>Device-side <code>printf</code> in CUDA C.</div></li>
+      <li data-n="7" tabindex="0"><span class="bd">7</span><div><b>importing the launcher</b>This brings in the generated launcher function, not the kernel body. Same name, different thing: the kernel body only ever runs on the GPU. <span class="ck">C</span>nvcc does the same trick silently: a host stub with the kernel's name is what you actually call.</div></li>
+      <li data-n="8" tabindex="0"><span class="bd h">8</span><div><b>stream</b>A queue of GPU work. Launches placed on one stream run in order, and syncing a stream waits for everything queued on it. <span class="ck">C</span><code>cudaStream_t</code> from <code>cudaStreamCreate</code>.</div></li>
+      <li data-n="9" tabindex="0"><span class="bd h">9</span><div><b>build, do not run</b>Calling the launcher builds a description of a launch on the CPU, a struct with the grid and options filled in step by step. Nothing has touched the GPU yet. <span class="ck">C</span>Filling in a struct of launch parameters before calling <code>cudaLaunchKernel</code>.</div></li>
+      <li data-n="10" tabindex="0"><span class="bd h">10</span><div><b>grid</b>How many copies of the kernel to run, as a box with three axes. (2, 2, 1) is four programs. (1, 1, 1) is the original example. <span class="ck">C</span>The first number inside <code>&lt;&lt;&lt;grid, block&gt;&gt;&gt;</code>.</div></li>
+      <li data-n="11" tabindex="0"><span class="bd g">11</span><div><b>submit and wait</b>Queues the launch on the stream and blocks until it finishes. The first time through, this is the moment the JIT compiles the kernel; every later launch of the same kernel reuses the cached result. <span class="ck">C</span>The launch plus <code>cudaStreamSynchronize(stream)</code>, except CUDA C compiled the kernel long before this point.</div></li>
+    </ol>
+  </div>
+
+  <h2 id="rust">The Rust in main, line by line</h2>
+  <div class="prose"><p>Everything in <code>main</code> is ordinary Rust. This is the part of the file that transfers to every Rust project you will ever write, so it gets its own pass. The MIR excerpts are real: they are what rustc built from these lines on the pod.</p></div>
+  <div class="rl">
+    <div>
+      <code class="rl-code">use cuda_core::Device;</code>
+      <p>A <code>use</code> brings a name into scope by its path. The path is a chain of namespaces separated by <code>::</code>, here the crate <code>cuda_core</code> and the type <code>Device</code> inside it. Paths are about namespaces, not files, which is why line 37 can import from a module defined in this same file.</p>
+      <p><span class="ck">C</span><code>#include</code> pulls in whole headers and everything lands in one global namespace; Rust imports one name at a time and keeps the crate prefix available.</p>
+    </div>
+    <div>
+      <code class="rl-code">fn main() -&gt; Result&lt;(), Error&gt; {</code>
+      <p><code>Result</code> is an enum with two variants: <code>Ok(value)</code> or <code>Err(error)</code>. Returning it from <code>main</code> means the program can fail with a typed error and the runtime prints it. The <code>()</code> is the unit type, Rust's "nothing here", so <code>Ok(())</code> at the bottom is "finished, nothing to return".</p>
+      <p><span class="ck">C</span><code>int main()</code> returning 0 or an error code, except the compiler will not let you forget to look at the code.</p>
+    </div>
+    <div>
+      <code class="rl-code">let device = Device::new(0)?;</code>
+      <p>The question mark is the try operator. If the call returned <code>Err</code>, the function returns that error immediately, converting it into <code>main</code>'s error type on the way; otherwise the <code>Ok</code> value is unwrapped into <code>device</code>. MIR shows exactly that: a call, a <code>branch</code>, a switch on which variant came back, and on the error path a conversion via <code>from_residual</code>.</p>
+<pre class="ex">bb0: {
+    _3 = cuda_core::Device::new(const 0_usize) -&gt; [return: bb1, unwind continue];
+}
+bb1: {
+    _2 = &lt;Result&lt;Arc&lt;Device&gt;, DriverError&gt; as Try&gt;::branch(move _3) -&gt; [return: bb2, unwind continue];
+}
+bb2: {
+    _4 = discriminant(_2);
+    switchInt(move _4) -&gt; [0: bb4, 1: bb5, otherwise: bb3];
+}
+bb5: {
+    _0 = &lt;Result&lt;(), Error&gt; as FromResidual&lt;..&gt;&gt;::from_residual(copy _5) -&gt; [return: bb19, unwind continue];
+}</pre>
+      <p>The value that comes back is an <code>Arc&lt;Device&gt;</code>, visible in the MIR locals as <code>_1: std::sync::Arc&lt;cuda_core::Device&gt;</code>. An <code>Arc</code> is a shared, reference-counted pointer that is safe to hand across threads; the device handle is freed when the last holder drops it.</p>
+      <p><span class="ck">C</span><code>?</code> is the <code>if (err != cudaSuccess) return err;</code> you would write after every CUDA call, done for you. <code>Arc</code> is a pointer plus a reference count you never have to maintain by hand.</p>
+    </div>
+    <div>
+      <code class="rl-code">let launcher = hello_world_kernel();
+launcher.grid((2, 2, 1)).sync_on(&amp;stream)?;</code>
+      <p>This is the builder pattern. The generated launcher is a plain struct, and <code>grid</code> takes it by value (<code>mut self</code>), sets a field, and returns it, so calls chain. This is the real generated code the macro wrote for this file:</p>
+<pre class="ex">pub struct HelloWorldKernel&lt;DI: DeviceOp&lt;Output = ()&gt;&gt; {
+    _const_grid: bool,
+    _grid: (u32, u32, u32),
+    input: Option&lt;DI&gt;,
+    function_generics: Option&lt;Vec&lt;String&gt;&gt;,
+    _phantom: std::marker::PhantomData&lt;()&gt;,
+    _compile_options: CompileOptions,
+    _compile_only: bool,
+}
+impl&lt;DI: DeviceOp&lt;Output = ()&gt;&gt; TileKernel&lt;(), DI, ()&gt; for HelloWorldKernel&lt;DI&gt; {
+    fn grid(mut self, grid: (u32, u32, u32)) -&gt; Self {
+        self._grid = grid;
+        self._const_grid = false;
+        self
+    }
+    ..
+}</pre>
+      <p>Because <code>grid</code> consumes the launcher, the name <code>launcher</code> is moved and cannot be used again after line 43. That is ownership: one owner at a time, and the compiler tracks the handoff. <code>&amp;stream</code> is different: it lends the stream for the duration of the call and keeps ownership on line 41. The tuple <code>(2, 2, 1)</code> becomes three constants in MIR, <code>(const 2_u32, const 2_u32, const 1_u32)</code>.</p>
+      <p><span class="ck">C</span>In C you would fill a struct and pass a pointer; nothing stops you from using it again after a function consumed it. <code>&amp;stream</code> is a pointer whose lifetime the compiler checks.</p>
+    </div>
+    <div>
+      <code class="rl-code">Ok(())
+}</code>
+      <p>When <code>main</code> ends, the stream and then the device go out of scope and are dropped, in reverse order of creation. You wrote no cleanup; rustc inserted it. MIR shows the calls it added:</p>
+<pre class="ex">bb14: {
+    _0 = Result::&lt;(), Error&gt;::Ok(const ());
+    drop(_7) -&gt; [return: bb17, unwind: bb21];     // _7 is `stream`
+}
+bb17: {
+    drop(_1) -&gt; [return: bb19, unwind continue];  // _1 is `device`
+}</pre>
+      <p><span class="ck">C</span>The <code>cudaStreamDestroy</code> you have to remember, on every exit path including the error ones. The <code>unwind</code> edges above are those error paths, generated for you.</p>
+    </div>
+  </div>
+
+  <h2 id="pipeline">Two compilers, one module</h2>
+  <div class="prose"><p>The module is compiled twice by two different compilers. rustc compiles it as host code, to check it and produce the launcher. The cuTile JIT compiles it as GPU code when the program runs. The Windows box can do the whole top lane; only the pod can do the bottom one. Click any stage, or step through with the buttons. Each stage shows what it produced for this exact file.</p></div>
+  <div class="stepper" id="stepper">
+    <div class="lanes" id="map"></div>
+    <div class="stepnav">
+      <button type="button" id="prev">← Prev</button>
+      <button type="button" class="primary" id="next">Next →</button>
+      <span class="pos" id="pos"></span>
+      <label><input type="checkbox" id="showall"> show every stage at once</label>
+    </div>
+    <div id="detail"></div>
+  </div>
+
+  <h3>Same shape, three owners</h3>
+  <div class="prose"><p>rustc's stages, the cuTile JIT's stages, and CUDA C's stages line up one for one. An intermediate representation, IR for short, is a simplified internal language a compiler uses because it is easier to analyze than raw source. Every column below has one.</p></div>
+  <div class="tablewrap">
+  <table>
+    <thead><tr><th>role</th><th>rustc (host side of this file)</th><th>cuTile JIT (kernel side)</th><th>CUDA C with nvcc</th></tr></thead>
+    <tbody>
+      <tr><td>front end: parse, resolve names, check types</td><td class="b">HIR, then MIR</td><td class="g">passes in cutile-compiler</td><td class="c">nvcc's front end</td></tr>
+      <tr><td>handoff language, readable as text</td><td class="b">LLVM IR</td><td class="g">Tile IR</td><td class="c">PTX</td></tr>
+      <tr><td>handoff file, binary</td><td class="b">LLVM bitcode</td><td class="g">bytecode 13.3</td><td class="c">PTX text, or a fatbinary</td></tr>
+      <tr><td>backend the project does not own</td><td class="b">LLVM</td><td class="g">tileiras</td><td class="c">ptxas</td></tr>
+      <tr><td>output</td><td class="b">x86 machine code</td><td class="g">cubin (SASS inside)</td><td class="c">cubin (SASS inside)</td></tr>
+      <tr><td>when</td><td class="b">before the program starts</td><td class="g">at the first launch, then cached</td><td class="c">before the program starts</td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <div class="aside">
+    <h3>Bytecode here is not Java bytecode</h3>
+    <p>Java's <code>.class</code> files are bytecode that the Java virtual machine executes. cuTile's bytecode is never executed. It is the Tile IR you can read, encoded compactly so <code>tileiras</code> can read it, the way PTX text is handed to <code>ptxas</code> in CUDA C, or a <code>.o</code> object file is handed to the linker. The GPU only ever runs the cubin. The project cares about versions 13.2 and 13.3 because a file format has to be agreed on by writer and reader.</p>
+  </div>
+
+  <h2 id="fleet">A fleet on a grid</h2>
+  <div class="prose">
+    <p>Picture a warehouse floor divided into cells, and a dispatcher with one instruction sheet. The dispatcher hands the same sheet to a fleet of robots, one robot per cell. Each robot reads its own cell number off its badge, reads the fleet size off the sheet, does its job on its own patch of floor, and logs a line. The dispatcher waits at the door until every robot is back.</p>
+    <p>That is a kernel launch. The instruction sheet is the kernel (<code>hello_world_kernel</code>). The fleet is the grid (<code>.grid((2, 2, 1))</code>), and each robot is one program. The badge is <code>program_id</code>, the fleet size is <code>num_programs</code>, and the patch of floor is that program's tile: disjoint by construction, so no two robots ever work the same square. The door the dispatcher waits at is <code>.sync_on(&amp;stream)</code>. Robots do not finish in a fixed order, so the log lines arrive in whatever order the fleet produced them. Both orders below were recorded on the pod, minutes apart, from the same binary.</p>
+  </div>
+  <div class="explorer">
+    <div>
+      <div class="controls">
+        <label>axis 0 <select id="gx"><option>1</option><option selected>2</option><option>3</option><option>4</option></select></label>
+        <label>axis 1 <select id="gy"><option>1</option><option selected>2</option><option>3</option></select></label>
+        <label>axis 2 <select id="gz" disabled><option>1</option></select></label>
+        <button id="launch" type="button" class="primary">Launch</button>
+      </div>
+      <div class="axes">
+        <div class="ax">axis 0 →</div>
+        <div class="ay">axis 1 →</div>
+        <div class="cells" id="cells"></div>
+      </div>
+    </div>
+    <div>
+      <pre class="term" id="term"></pre>
+      <div class="caption" id="caption"></div>
+    </div>
+  </div>
+  <div class="prose" style="margin-top:14px"><p><span class="ck">C</span>In CUDA C the badge is <code>blockIdx</code>, the fleet size is <code>gridDim</code>, the launch is <code>hello&lt;&lt;&lt;dim3(2, 2, 1), 1&gt;&gt;&gt;()</code>, and the door is <code>cudaStreamSynchronize</code>. cuTile's unit of work is a whole tile per program rather than one thread per element, which is the part that is new.</p></div>
+
+  <h2 id="glossary">Glossary</h2>
+  <dl class="gloss">
+    <div><dt>attribute <span class="tag b">build</span></dt><dd>A note attached to an item with <code>#[...]</code>. Some are read by rustc itself, like <code>#[allow(..)]</code>; some name a macro that rewrites the item.<span class="cc"><span class="ck">C</span><code>__attribute__((..))</code>, <code>#pragma</code></span></dd></div>
+    <div><dt>procedural macro <span class="tag b">build</span></dt><dd>A Rust function that runs inside the compiler and transforms tokens into other tokens. <code>cutile::module</code> and <code>cutile::entry</code> are both proc macros from the cutile-macro crate.<span class="cc"><span class="ck">C</span><code>#define</code>, but on parsed tokens rather than raw text, and type-checked afterwards</span></dd></div>
+    <div><dt>mod <span class="tag b">build</span></dt><dd>A module: a named namespace and the unit of privacy. Items are private to their module unless marked <code>pub</code>. Written inline as <code>mod name { .. }</code> or as <code>mod name;</code> pointing at a file.<span class="cc"><span class="ck">C</span>a translation unit with <code>static</code> for private and a header for public</span></dd></div>
+    <div><dt>kernel <span class="tag g">gpu</span></dt><dd>A function that runs on the GPU, launched from the CPU and executed by many programs at once. Not the operating-system kernel and not a convolution kernel; the three share a word and nothing else.<span class="cc"><span class="ck">C</span><code>__global__</code> function</span></dd></div>
+    <div><dt>program <span class="tag g">gpu</span></dt><dd>One running copy of a kernel, identified by its coordinates in the grid.<span class="cc"><span class="ck">C</span>a thread block, indexed by <code>blockIdx</code></span></dd></div>
+    <div><dt>grid <span class="tag h">host</span></dt><dd>The number of programs to launch, as a box with three axes. Each axis is at least 1, and unused axes stay at 1.<span class="cc"><span class="ck">C</span><code>dim3 grid</code>, read back as <code>gridDim</code></span></dd></div>
+    <div><dt>tile <span class="tag g">gpu</span></dt><dd>A small block of an array, the unit of data cuTile hands to each program. Every program gets a disjoint tile, which is what makes launch order irrelevant.<span class="cc"><span class="ck">C</span>no direct cousin; the slice of an array a block would index by hand</span></dd></div>
+    <div><dt>launcher <span class="tag h">host</span></dt><dd>The host-side struct and function the macro generates for each entry, under the kernel's own name. Calling it builds a launch description; <code>.grid</code> and <code>.sync_on</code> finish it.<span class="cc"><span class="ck">C</span>the host stub nvcc generates behind <code>&lt;&lt;&lt; &gt;&gt;&gt;</code></span></dd></div>
+    <div><dt>stream <span class="tag h">host</span></dt><dd>An in-order queue of GPU work owned by the host. Work on one stream runs in sequence; separate streams may overlap.<span class="cc"><span class="ck">C</span><code>cudaStream_t</code></span></dd></div>
+    <div><dt>ahead-of-time compilation <span class="tag b">build</span></dt><dd>Turning all code into machine code before the program starts. That is what <code>cargo build</code> does for the host side.<span class="cc"><span class="ck">C</span>what gcc, clang, and nvcc always do</span></dd></div>
+    <div><dt>JIT <span class="tag h">host</span></dt><dd>"Just in time": a compiler that runs while the program is executing, producing machine code right before it is needed. cutile-compiler does it for kernels at the first launch.<span class="cc"><span class="ck">C</span>NVRTC, which compiles CUDA C source strings at run time; also the driver's own PTX JIT</span></dd></div>
+    <div><dt>IR <span class="tag b">build</span><span class="tag h">host</span></dt><dd>Intermediate representation: a compiler's internal, simplified language between source and machine code. Both rustc and the JIT have several.<span class="cc"><span class="ck">C</span>GIMPLE in gcc, LLVM IR in clang, PTX in nvcc</span></dd></div>
+    <div><dt>HIR <span class="tag b">build</span></dt><dd>rustc's high-level IR: Rust after macro expansion and name resolution, with sugar like <code>for</code> and <code>?</code> desugared. Type checking runs on it.<span class="cc"><span class="ck">C</span>the compiler's AST after preprocessing (<code>gcc -E</code> shows the input to it)</span></dd></div>
+    <div><dt>MIR <span class="tag b">build</span></dt><dd>rustc's mid-level IR: functions as graphs of basic blocks with explicit temporaries, borrows, and drops. The borrow checker runs on it. Stable rustc can dump it with <code>--emit=mir</code>.<span class="cc"><span class="ck">C</span>GIMPLE is the same shape, minus the borrow checker</span></dd></div>
+    <div><dt>LLVM IR <span class="tag b">build</span></dt><dd>The input language of LLVM, a compiler backend shared by rustc, clang, Swift, and others. rustc translates MIR to it and lets LLVM optimize and emit machine code.<span class="cc"><span class="ck">C</span>identical: <code>clang -S -emit-llvm</code> produces the same language</span></dd></div>
+    <div><dt>Tile IR <span class="tag h">host</span></dt><dd>NVIDIA's intermediate language for tile-based GPU programs, and the contract between this project and NVIDIA's tools. The cutile-ir crate builds it in pure Rust.<span class="cc"><span class="ck">C</span>PTX plays this role for CUDA C</span></dd></div>
+    <div><dt>bytecode <span class="tag h">host</span></dt><dd>The binary encoding of a Tile IR module, written by cutile-ir and read by tileiras. Versioned 13.2 or 13.3 to match the toolkit.<span class="cc"><span class="ck">C</span>an object file: a binary you hand to the next tool and never read</span></dd></div>
+    <div><dt>tileiras <span class="tag h">host</span></dt><dd>NVIDIA's Tile IR assembler, shipped in CUDA 13.2 and later. The JIT runs it as a subprocess to turn bytecode into a cubin.<span class="cc"><span class="ck">C</span><code>ptxas</code></span></dd></div>
+    <div><dt>cubin <span class="tag g">gpu</span></dt><dd>A CUDA binary: an ELF file holding SASS, the machine code of one GPU generation. Loaded into the driver with <code>cuModuleLoadData</code>.<span class="cc"><span class="ck">C</span>the same file nvcc produces; inspect either with <code>cuobjdump -sass</code></span></dd></div>
+    <div><dt>SASS <span class="tag g">gpu</span></dt><dd>The GPU's native instruction set, what a cubin contains. <code>S2UR UR4, SR_CTAID.X</code> is how a program learns its own index.<span class="cc"><span class="ck">C</span>same thing; x86 assembly is the host-side analogue</span></dd></div>
+    <div><dt>compute capability <span class="tag g">gpu</span></dt><dd>The GPU generation a cubin targets, written <code>sm_NN</code>. cuTile needs sm_80 or newer; the pod is sm_120 and the Windows GTX 1070 Ti is sm_61.<span class="cc"><span class="ck">C</span><code>nvcc -arch=sm_120</code></span></dd></div>
+    <div><dt>kernel cache <span class="tag h">host</span></dt><dd>Compiled kernels kept in memory per process, keyed by specialization, so only the first launch pays for the JIT. An optional on-disk cache, keyed by the bytecode's hash, is opt-in with <code>jit_cache::enable_default()</code>.<span class="cc"><span class="ck">C</span>the driver's PTX JIT cache under <code>~/.nv/ComputeCache</code></span></dd></div>
+  </dl>
+
+  <div class="aside" id="try">
+    <h3>Things to try on the pod</h3>
+    <p>The pod that produced every excerpt above was stopped on 2026-09-18. Its local disk, with the dump files and the cached cubin, went with it; the copies linked from each stage and listed below did not. On any freshly bootstrapped pod, check out the branch first (<code>git checkout test/hello-world-grid</code>) and these commands work again from <code>/workspace/cutile-rs</code>.</p>
+    <ul>
+      <li>Watch the run-time stage make its decisions, then launch again and see the cache hit.</li>
+      <li>See the same kernel in both encodings, text IR and decoded bytecode.</li>
+      <li>Dump the macro's generated launcher, and rustc's MIR and LLVM IR, for this example.</li>
+      <li>Get the real GPU machine code: turn on the disk cache for one run, then disassemble the cached cubin.</li>
+    </ul>
+<pre class="cmd">CUTILE_JIT_LOG=1 CUTILE_JIT_TIMING=1 cargo run -p cutile-examples --example hello_world
+CUTILE_DUMP=all cargo run -p cutile-examples --example hello_world
+
+mkdir -p /root/launchers
+touch cutile-examples/examples/hello_world.rs
+DUMP_KERNEL_LAUNCHER_DIR=/root/launchers cargo build -p cutile-examples --example hello_world
+cargo rustc -p cutile-examples --example hello_world -- --emit=mir,llvm-ir
+ls /root/target/debug/examples/ | grep -E 'hello_world.*\.(mir|ll)$'
+
+# add as the first line of main, run once, then remove it again:
+#     cutile::jit_cache::enable_default().expect("enable jit cache");
+f=$(find /root/.cache/cutile -name '*.cubin' | head -1)
+off=$(grep -abo $'\x7fELF' "$f" | head -1 | cut -d: -f1)   # the entry has a 312-byte header
+tail -c +$((off+1)) "$f" > /root/hello_world.cubin
+cuobjdump -sass /root/hello_world.cubin | grep -n 'CTAID\|Function'</pre>
+  </div>
+
+  <div class="aside raw">
+    <h3>The raw dumps, in full</h3>
+    <p>Plain-text files published next to this page and kept in the repo under <code>notes/2026-09-17-hello-world-excerpts/</code>, with a README that says how each was made.</p>
+    <ul>
+      <li><a href="excerpts/tile-ir-and-bytecode.txt">tile-ir-and-bytecode.txt</a> stderr of the dump run: JIT log, Tile IR, decoded bytecode, timing</li>
+      <li><a href="excerpts/run-output.txt">run-output.txt</a> stdout of the same run: print_ir output and the four hello lines</li>
+      <li><a href="excerpts/generated-launcher.txt">generated-launcher.txt</a> everything the macro generated for the entry</li>
+      <li><a href="excerpts/main.mir.txt">main.mir.txt</a> rustc's MIR for main</li>
+      <li><a href="excerpts/main.llvm-ir.txt">main.llvm-ir.txt</a> the LLVM IR for main</li>
+      <li><a href="excerpts/embedded-source-string.txt">embedded-source-string.txt</a> the module's source text as found in the binary</li>
+      <li><a href="excerpts/sass-excerpt.txt">sass-excerpt.txt</a> the GPU machine code, head of the listing plus the register reads</li>
+      <li><a href="excerpts/disk-cache-runs.txt">disk-cache-runs.txt</a> the cache miss, the cache hit, and the entry layout</li>
+      <li><a href="excerpts/collection-log.txt">collection-log.txt</a> the whole terminal log of the collection script</li>
+      <li><a href="excerpts/README.md">README.md</a> provenance and the commands</li>
+    </ul>
+  </div>
+
+  <footer>Source lines are from the fork branch <code>test/hello-world-grid</code>. Excerpts marked "real" came from the pod on 2026-09-17 and 2026-09-18 UTC via the commands in the last section: Tile IR and bytecode from <code>CUTILE_DUMP=all</code>, the launcher from <code>DUMP_KERNEL_LAUNCHER_DIR</code>, MIR and LLVM IR from <code>cargo rustc --emit</code>, and the SASS from <code>cuobjdump</code> on the disk-cached cubin. Long excerpts are cut with <code>..</code>; nothing is rewritten, and each stage links to its full dump.</footer>
+</div>
+
+<script>
+(function () {
+  // Callout hover: notes light up their code marks and vice versa.
+  var marks = Array.prototype.slice.call(document.querySelectorAll('mark.m'));
+  var notes = Array.prototype.slice.call(document.querySelectorAll('ol.notes li'));
+  function setHot(n, on) {
+    marks.forEach(function (m) { if (m.dataset.n === n) m.classList.toggle('hot', on); });
+    notes.forEach(function (li) { if (li.dataset.n === n) li.classList.toggle('hot', on); });
+  }
+  notes.forEach(function (li) {
+    li.addEventListener('mouseenter', function () { setHot(li.dataset.n, true); });
+    li.addEventListener('mouseleave', function () { setHot(li.dataset.n, false); });
+    li.addEventListener('focus', function () { setHot(li.dataset.n, true); });
+    li.addEventListener('blur', function () { setHot(li.dataset.n, false); });
+  });
+  marks.forEach(function (m) {
+    m.addEventListener('mouseenter', function () { setHot(m.dataset.n, true); });
+    m.addEventListener('mouseleave', function () { setHot(m.dataset.n, false); });
+  });
+
+  // ---------------------------------------------------------------- stepper
+  var stages = [
+    { lane: 'build', name: 'hello_world.rs', owner: 'you', short: 'the text you edit',
+      what: 'One file holds both halves: the module the GPU will run and the <code>main</code> the CPU will run. Nothing distinguishes them to the eye except the attribute on line 12.',
+      tag: 'real', tagText: 'the file, lines 12 to 18',
+      excerpt: String.raw`#[cutile::module]
+mod hello_world_module {
+
+    use cutile::core::*;
+
+    #[cutile::entry(print_ir = true)]
+    fn hello_world_kernel() {`,
+      cousin: 'A <code>.cu</code> file in CUDA C also mixes host code and <code>__global__</code> device code in one file, and nvcc splits them apart.',
+      see: 'cat cutile-examples/examples/hello_world.rs' },
+
+    { lane: 'build', name: 'macro expansion', owner: 'cutile-macro', short: 'rewrites the module, keeps the source text',
+      what: '<code>#[cutile::module]</code> runs inside rustc. It emits two things for each entry: a tiny wrapper the JIT will later compile, and a host-side launcher struct with the same name as the kernel. It also captures the module\'s original source text and stores it in the binary through a generated <code>__module_ast_self</code> function, which the launcher passes to the JIT.',
+      tag: 'real', tagText: 'generated code, dumped with DUMP_KERNEL_LAUNCHER_DIR and print_ir',
+      excerpt: String.raw`// the wrapper the JIT will compile later
+fn hello_world_kernel_entry() {
+    { __cutile_user_impl_hello_world_kernel() };
+}
+
+// the launcher rustc compiles now (excerpt)
+pub struct HelloWorldKernel<DI: DeviceOp<Output = ()>> {
+    _const_grid: bool,
+    _grid: (u32, u32, u32),
+    input: Option<DI>,
+    ..
+}
+impl<DI: DeviceOp<Output = ()>> TileKernel<(), DI, ()> for HelloWorldKernel<DI> {
+    fn grid(mut self, grid: (u32, u32, u32)) -> Self {
+        self._grid = grid;
+        self._const_grid = false;
+        self
+    }
+    ..
+}
+// inside the launcher: the link back to the stored source text
+let module_name = "hello_world_module";
+let function_name = "hello_world_kernel";
+_specialization_from_context(ctx, __module_ast_self as ModuleAstFn, module_name, function_name, ..)`,
+      cousin: 'The C preprocessor also rewrites code before compilation, but as text substitution with no knowledge of syntax. nvcc is the closer cousin: it generates a host stub with the kernel\'s name so <code>kernel&lt;&lt;&lt;..&gt;&gt;&gt;()</code> compiles as a normal call.',
+      see: 'DUMP_KERNEL_LAUNCHER_DIR=/root/launchers cargo build -p cutile-examples --example hello_world' },
+
+    { lane: 'build', name: 'HIR', owner: 'rustc', short: 'desugared, names resolved, types checked',
+      what: 'The high-level IR is your Rust with the sugar removed and every name resolved to the thing it means. A <code>?</code> becomes a <code>match</code>, a <code>for</code> becomes a <code>loop</code> over an iterator. Type checking runs on this form, so a type error in the kernel body is reported here, before any GPU is involved.',
+      tag: 'illus', tagText: 'illustrative: a real HIR dump needs a nightly compiler',
+      excerpt: String.raw`// line 40 as written
+let device = Device::new(0)?;
+
+// roughly what HIR holds for it
+let device = match Try::branch(Device::new(0)) {
+    ControlFlow::Continue(val) => val,
+    ControlFlow::Break(residual) => return FromResidual::from_residual(residual),
+};`,
+      cousin: 'The C compiler\'s syntax tree after preprocessing. <code>gcc -E</code> shows the input to that stage; the tree itself is not normally printed.',
+      see: 'rustup run nightly cargo rustc -p cutile-examples --example hello_world -- -Zunpretty=hir' },
+
+    { lane: 'build', name: 'MIR', owner: 'rustc', short: 'basic blocks; the borrow checker runs here',
+      what: 'The mid-level IR flattens each function into a graph of basic blocks: straight runs of simple statements that end in a jump, a branch, a call, or a return. Every temporary has a name, every borrow is explicit, every drop is a visible statement. This is where the borrow checker runs, because "who holds what, for how long" is only easy to answer once control flow is this explicit.',
+      tag: 'real', tagText: 'main, from cargo rustc --emit=mir (generics shortened to ..)',
+      excerpt: String.raw`fn main() -> std::result::Result<(), cutile::error::Error> {
+    let mut _0: std::result::Result<(), cutile::error::Error>;
+    let _1: std::sync::Arc<cuda_core::Device>;
+    let _7: std::sync::Arc<cuda_core::Stream>;
+    let _14: hello_world_module::HelloWorldKernel<cutile::tile_kernel::KernelArgs<()>>;
+    ..
+    bb10: {
+        _18 = (const 2_u32, const 2_u32, const 1_u32);
+        _17 = <HelloWorldKernel<..> as TileKernel<..>>::grid(copy _14, move _18) -> [return: bb11, unwind: bb20];
+    }
+    bb11: {
+        _19 = &_7;
+        _16 = <HelloWorldKernel<..> as DeviceOp>::sync_on(move _17, copy _19) -> [return: bb12, unwind: bb20];
+    }
+    ..
+    bb14: {
+        _0 = Result::<(), Error>::Ok(const ());
+        drop(_7) -> [return: bb17, unwind: bb21];
+    }
+    bb17: {
+        drop(_1) -> [return: bb19, unwind continue];
+    }`,
+      cousin: 'gcc\'s GIMPLE has the same shape, a control-flow graph of simple statements. There is no C equivalent of the borrow checker; that analysis is the reason MIR exists.',
+      see: 'cargo rustc -p cutile-examples --example hello_world -- --emit=mir' },
+
+    { lane: 'build', name: 'LLVM IR', owner: 'LLVM', short: 'handed to a backend rustc shares with clang',
+      what: 'rustc translates MIR into LLVM IR, a low-level typed language that knows nothing about Rust, and hands it to LLVM for optimization and x86 code generation. The Rust names survive only as mangled symbols and comments. Note how <code>new_stream</code> is an <code>invoke</code> with an unwind label: that is the error path from the MIR above, now explicit at the machine level.',
+      tag: 'real', tagText: 'main, from cargo rustc --emit=llvm-ir',
+      excerpt: String.raw`define hidden void @_RNvCs7IX6CBL240Q_11hello_world4main(ptr sret([64 x i8]) align 8 %_0) unnamed_addr #0 personality ptr @rust_eh_personality !dbg !8215 {
+start:
+  %launcher = alloca [80 x i8], align 8
+  %stream = alloca [8 x i8], align 8
+  %device = alloca [8 x i8], align 8
+; call <cuda_core::runtime::Device>::new
+  call void @_RNvMs8_NtCslDw4XWXMHBm_9cuda_core7runtimeNtB5_6Device3new(ptr sret([16 x i8]) align 8 %_3, i64 0), !dbg !8268
+  ..
+; invoke <cuda_core::runtime::Device>::new_stream
+  invoke void @_RNvMs8_NtCslDw4XWXMHBm_9cuda_core7runtimeNtB5_6Device10new_stream(ptr sret([16 x i8]) align 8 %_9, ptr align 8 %device)
+          to label %bb6 unwind label %cleanup, !dbg !8273`,
+      cousin: 'Identical stage: <code>clang -S -emit-llvm hello.c</code> produces this same language from C, and the same LLVM turns both into machine code.',
+      see: 'cargo rustc -p cutile-examples --example hello_world -- --emit=llvm-ir' },
+
+    { lane: 'build', name: 'host binary', owner: 'linker', short: 'x86 code, the launcher, and the kernel source text',
+      what: 'The executable holds x86 machine code for <code>main</code> and the launcher, and, as an ordinary string constant, the kernel module\'s source text. No GPU code exists yet. This string is the whole handoff between the two lanes: the second compiler starts from it.',
+      tag: 'real', tagText: 'one string constant in the LLVM IR file (\\0A is a newline)',
+      excerpt: String.raw`cutile::entry(print_ir = true)]\0A    fn hello_world_kernel() {\0A        let pid0 = program_id(0);\0A        let pid1 = program_id(1);\0A        let pid2 = program_id(2);\0A        let n0 = num_programs(0);\0A        let n1 = num_programs(1);\0A ..`,
+      cousin: 'An nvcc executable embeds a fatbinary instead: PTX and SASS compiled ahead of time. cuTile embeds source and compiles later, which is why it can specialize on the real GPU and the real tensor shapes.',
+      see: 'strings /root/target/debug/examples/hello_world | grep -m1 program_id' },
+
+    { lane: 'run', name: 'source text', owner: 'cutile JIT', short: 're-read from the binary at the first launch',
+      what: 'Line 43 runs. The launcher checks the in-memory cache, misses, and starts the JIT. The JIT first locates <code>tileiras</code> through <code>CUDA_TOOLKIT_PATH</code>, then calls the stored <code>__module_ast_self</code> function to get the module\'s source text and parses it again, this time as the kernel language rather than as Rust.',
+      tag: 'real', tagText: 'stderr with CUTILE_SETUP_DIAGNOSTICS=1 and CUTILE_JIT_LOG=1',
+      excerpt: String.raw`cutile setup: using CUDA_TOOLKIT_PATH tileiras at /usr/local/cuda-13.3/bin/tileiras
+[cutile::jit] hello_world_module::hello_world_kernel → JIT compiling...`,
+      cousin: 'NVRTC does the same for CUDA C: it takes device source as a string at run time and compiles it, which is how libraries generate specialized kernels on the fly.',
+      see: 'CUTILE_SETUP_DIAGNOSTICS=1 CUTILE_JIT_LOG=1 cargo run -p cutile-examples --example hello_world' },
+
+    { lane: 'run', name: 'JIT passes', owner: 'cutile-compiler', short: 'name resolution, type inference, lowering',
+      what: 'The compiler walks the module\'s <code>use</code> lines to find the cuTile modules it depends on, resolves every name, runs a proof analysis for bounds checks, infers types in its own narrow type system, and lowers each call: an <code>#[cuda_tile::op]</code> function becomes one Tile IR op, a compiler op becomes an intrinsic, anything else is inlined. All of stage 1 in the timing line is this plus the next two steps.',
+      tag: 'real', tagText: 'the CUTILE_JIT_TIMING line, reformatted from one line',
+      excerpt: String.raw`CUTILE_JIT_TIMING module=hello_world_module function=hello_world_kernel key=f58cc13741e89a85
+  stage1_ms=78.032                           source text -> Tile IR -> bytecode
+  stage2_ms=239.623  stage2_source=tileiras  bytecode -> cubin
+  stage3_ms=10.689                           load the cubin into the driver
+  checks_discharged=0 checks_hoisted=0 checks_in_place=0`,
+      cousin: 'The front half of nvcc: parse, resolve, type-check. There is no dump of these passes today; the <code>CUTILE_DUMP</code> stage names <code>ast</code>, <code>resolved</code>, and <code>typed</code> are reserved but not emitted yet.',
+      see: 'CUTILE_JIT_TIMING=1 cargo run -p cutile-examples --example hello_world' },
+
+    { lane: 'run', name: 'Tile IR', owner: 'cutile-ir', short: 'the readable form; what print_ir shows',
+      what: 'NVIDIA\'s intermediate language for tile programs, built here by the pure-Rust <code>cutile-ir</code> crate. Each <code>program_id(n)</code> became a <code>get_tile_block_id</code> op, an <code>assume bounded&lt;0, ?&gt;</code> hint that the id is never negative, and an <code>assert</code> that the axis is valid. The print became one <code>print_tko</code> op with six operands. Every value is a <code>tile</code>, even a single <code>i32</code>.',
+      tag: 'real', tagText: 'CUTILE_DUMP=ir, shortened',
+      excerpt: String.raw`cuda_tile.module @hello_world_module {
+  entry @hello_world_kernel_entry() di_name = "hello_world_kernel" {
+    %0 = constant <i32: 0> : tile<i32>
+    %1, %2, %3 = get_tile_block_id : tile<i32>
+    %4 = assume bounded<0, ?>, %1 : tile<i32>
+    %5 = assume bounded<0, ?>, %2 : tile<i32>
+    %6 = assume bounded<0, ?>, %3 : tile<i32>
+    ..
+    assert %38, "program_id: axis must be 0, 1, or 2" : tile<i1>
+    %39 = constant <i32: 0> : tile<i32>
+    %40, %41, %42 = get_num_tile_blocks : tile<i32>
+    ..
+    assert %77, "num_programs: axis must be 0, 1, or 2" : tile<i1>
+    %78 = print_tko "Hello, I am program <%i, %i, %i> in a kernel with <%i, %i, %i> programs.\n", %4, %15, %29, %43, %54, %68 : tile<i32>, tile<i32>, tile<i32>, tile<i32>, tile<i32>, tile<i32>
+    return
+  }
+}`,
+      cousin: 'PTX, the text IR nvcc emits for CUDA C (<code>nvcc -ptx</code>). Both are readable, both are target-neutral, and both are handed to an NVIDIA assembler you do not own.',
+      see: 'CUTILE_DUMP=ir cargo run -p cutile-examples --example hello_world' },
+
+    { lane: 'run', name: 'bytecode', owner: 'cutile-ir', short: 'the same IR as a binary file, version 13.3',
+      what: 'The IR serialized to a compact binary: a string table, a type table, constants, one function body of 243 bytes, and debug records that map every op back to a line and column in <code>hello_world.rs</code>. Same program as the text above, different encoding, chosen to match what the toolkit\'s <code>tileiras</code> expects (13.3 here, 13.2 on an older toolkit). The SHA-256 of these bytes is also the disk cache key.',
+      tag: 'real', tagText: 'CUTILE_DUMP=bytecode, which decodes the bytes back to text; shortened',
+      excerpt: String.raw`TileIR bytecode v13.3
+
+=== Strings (18) ===
+  [1] "hello_world_kernel_entry"
+  [3] "hello_world_kernel"
+  [8] "program_id: axis must be 0, 1, or 2"
+  [11] "Hello, I am program <%i, %i, %i> in a kernel with <%i, %i, %i> programs.\n"
+  [16] "cutile-examples/examples/hello_world.rs"
+
+=== Types (6) ===
+  [0] () -> ()
+  [1] i32
+  [2] tile<i32>
+  [3] i1
+  [4] tile<i1>
+
+=== Functions (1) ===
+  entry @hello_world_kernel_entry : () -> ()
+    body: 243 bytes, ~243 ops
+
+=== Debug (1 functions) ===
+  di[1] = DIFile(name="hello_world.rs", dir="cutile-examples/examples")
+  di[6] = DILoc(scope=di[5], "cutile-examples/examples/hello_world.rs":19:30)`,
+      cousin: 'Not Java bytecode, which a virtual machine executes. This is more like an object file: a binary the next tool reads. PTX has no binary form, so CUDA C skips this step.',
+      see: 'CUTILE_DUMP=bytecode cargo run -p cutile-examples --example hello_world' },
+
+    { lane: 'run', name: 'tileiras', owner: 'CUDA toolkit', short: 'NVIDIA\'s assembler, run as a subprocess',
+      what: 'The JIT writes the bytecode to a file and runs <code>tileiras</code> on it, asking for the pod\'s GPU by name. This is the one step cutile-rs does not implement: it is NVIDIA\'s optimizing assembler, shipped in CUDA 13.2 and later, and the reason the Windows box with CUDA 13.0 cannot run kernels. It took 240 ms of the 328 ms first launch.',
+      tag: 'real', tagText: 'tileiras --help on the pod, shortened, plus the timing line',
+      excerpt: String.raw`$ tileiras --help
+OVERVIEW: tileiras: NVIDIA (R) Cuda Tile IR optimizing assembler
+USAGE: tileiras [options] <tile bytecode file>
+  --gpu-name=<value>     - Specify name of NVIDIA GPU to generate code for.
+    =sm_80 =sm_86 =sm_87 =sm_88 =sm_89 =sm_90 =sm_100 =sm_103 =sm_110 =sm_120 =sm_121
+  --opt-level=<N>        - Specify optimization level. Default Value: 3.
+  --output-file=<file>   - Specify name of output file.
+
+stage2_ms=239.623  stage2_source=tileiras`,
+      cousin: '<code>ptxas</code>, which turns PTX into SASS for one GPU generation. Same job, same vendor, different input language.',
+      see: 'tileiras --help | head -40' },
+
+    { lane: 'run', name: 'cubin', owner: 'GPU', short: 'SASS machine code for sm_120, loaded into the driver',
+      what: 'A CUDA binary: an ELF file whose <code>.text</code> section is SASS, the GPU\'s native instruction set. The JIT hands the bytes to the driver with <code>cuModuleLoadData</code> and looks up <code>hello_world_kernel_entry</code>. The three <code>program_id</code> calls are now three reads of the <code>SR_CTAID</code> special register, one per axis. This is the bottom of the stack; nothing below it is software.',
+      tag: 'real', tagText: 'cuobjdump -sass on the disk-cached cubin, 264 instructions, 20,752 bytes; shortened and annotated after the arrows',
+      excerpt: String.raw`	code for sm_120a
+	.target	sm_120a
+		Function : hello_world_kernel_entry
+        /*0000*/   LDC R1, c[0x0][0x37c] ;
+        /*0010*/   S2R R18, SR_TID.X ;
+        /*0020*/   S2UR UR5, SR_CgaCtaId ;
+        ..
+        /*02c0*/   S2UR UR4, SR_CTAID.X ;      <- program_id(0): the block index on axis 0, from a hardware register
+        /*04a0*/   CALL.ABS.NOINC R2 ;         <- a call into a device-side library routine
+        /*0630*/   S2UR UR4, SR_CTAID.Y ;      <- program_id(1)
+        /*07b0*/   S2UR UR4, SR_CTAID.Z ;      <- program_id(2)
+        ..`,
+      cousin: 'Exactly the file nvcc produces for a CUDA C kernel, and <code>cuobjdump -sass</code> reads both. x86 assembly is the host-side analogue.',
+      see: 'cuobjdump -sass /root/hello_world.cubin | grep -n CTAID' },
+
+    { lane: 'run', name: 'kernel cache', owner: 'cutile', short: 'later launches skip everything to the left',
+      what: 'Inside one process, the compiled kernel is cached by its specialization key, so a second launch of the same kernel skips the JIT entirely. Across processes, the opt-in disk cache stores the cubin under the SHA-256 of the bytecode. Stage 1 still runs on a disk hit, because the bytecode has to exist before its hash can be looked up; only the assembler is skipped, and that is the expensive part.',
+      tag: 'real', tagText: 'two separate processes on the pod with the disk cache enabled',
+      excerpt: String.raw`# first process: compiled by tileiras, then stored on disk
+[cutile::jit] hello_world_module::hello_world_kernel → JIT compiled in 302.8ms
+CUTILE_JIT_TIMING .. key=f58cc13741e89a85 stage1_ms=77.452 stage2_ms=216.005 stage2_source=tileiras stage3_ms=9.354
+
+# second process, same source: the cubin came back from disk
+[cutile::jit] hello_world_module::hello_world_kernel → JIT compiled in 105.2ms
+CUTILE_JIT_TIMING .. key=f58cc13741e89a85 stage1_ms=92.528 stage2_ms=3.474 stage2_source=disk stage3_ms=9.145
+
+# where it lives: a 312-byte header with checksums, then the ELF cubin
+/root/.cache/cutile/kernels/33/33356d0c..fc715863.cubin   21,064 bytes`,
+      cousin: 'nvcc has nothing to cache because it compiled ahead of time. The CUDA driver keeps its own JIT cache for PTX under <code>~/.nv/ComputeCache</code>, which is the same idea one layer down.',
+      see: 'CUTILE_JIT_LOG=1 CUTILE_JIT_TIMING=1 cargo run -p cutile-examples --example hello_world' }
+  ];
+  // Full dumps, published next to this page and kept in the repo under notes/2026-09-17-hello-world-excerpts/.
+  var fulls = {
+    'macro expansion': ['excerpts/generated-launcher.txt', 'the whole generated launcher'],
+    'MIR': ['excerpts/main.mir.txt', 'all of main in MIR'],
+    'LLVM IR': ['excerpts/main.llvm-ir.txt', 'all of main in LLVM IR'],
+    'host binary': ['excerpts/embedded-source-string.txt', 'the first 240 characters of the stored string'],
+    'source text': ['excerpts/tile-ir-and-bytecode.txt', 'the complete stderr of the run'],
+    'JIT passes': ['excerpts/tile-ir-and-bytecode.txt', 'the complete stderr of the run'],
+    'Tile IR': ['excerpts/tile-ir-and-bytecode.txt', 'the complete IR, all 78 values'],
+    'bytecode': ['excerpts/tile-ir-and-bytecode.txt', 'the complete decoded bytecode, all 32 debug records'],
+    'tileiras': ['excerpts/collection-log.txt', 'the full tileiras --help output in the collection log'],
+    'cubin': ['excerpts/sass-excerpt.txt', 'the first 67 instructions and every register read'],
+    'kernel cache': ['excerpts/disk-cache-runs.txt', 'both runs and the cache entry layout']
+  };
+  stages.forEach(function (s) { var f = fulls[s.name]; if (f) { s.full = f[0]; s.fullNote = f[1]; } });
+
+  var map = document.getElementById('map'), detail = document.getElementById('detail');
+  var prev = document.getElementById('prev'), next = document.getElementById('next'), pos = document.getElementById('pos');
+  var showall = document.getElementById('showall');
+  var cur = 0;
+
+  function chip(i) {
+    var s = stages[i];
+    var b = document.createElement('button');
+    b.type = 'button'; b.className = 'chip'; b.dataset.i = i;
+    b.innerHTML = '<b>' + s.name + '</b><span>' + s.short + '</span>';
+    b.addEventListener('click', function () { select(i); });
+    return b;
+  }
+  function buildMap() {
+    var build = document.createElement('div'); build.className = 'lane build';
+    build.innerHTML = '<div class="eyebrow">build time · cargo build · any machine, including the Windows box</div>';
+    var f1 = document.createElement('div'); f1.className = 'flow';
+    var run = document.createElement('div'); run.className = 'lane run';
+    run.innerHTML = '<div class="eyebrow">run time · first launch · needs an sm_80+ GPU and tileiras</div>';
+    var f2 = document.createElement('div'); f2.className = 'flow';
+    stages.forEach(function (s, i) {
+      var flow = s.lane === 'build' ? f1 : f2;
+      if (flow.children.length) { var a = document.createElement('div'); a.className = 'arrow'; a.textContent = '→'; flow.appendChild(a); }
+      flow.appendChild(chip(i));
+    });
+    build.appendChild(f1); run.appendChild(f2);
+    var hand = document.createElement('div'); hand.className = 'handoff';
+    hand.innerHTML = '<div class="v">↓</div><div>The binary carries the kernel\'s source text, not GPU code. At the first <code>.sync_on</code>, the JIT reads that text and starts the second lane.</div>';
+    map.appendChild(build); map.appendChild(hand); map.appendChild(run);
+  }
+  function panel(i) {
+    var s = stages[i];
+    var d = document.createElement('div');
+    d.className = 'panel ' + s.lane;
+    var tag = s.tag === 'real' ? '<span class="real">real, from the pod</span>' : '<span class="illus">illustrative</span>';
+    d.innerHTML =
+      '<div class="ph"><h3>' + (i + 1) + '. ' + s.name + '</h3><span class="owner">' + s.owner + '</span></div>' +
+      '<div class="what">' + s.what + '</div>' +
+      '<div class="lbl">for hello_world ' + tag + '<span>' + s.tagText + '</span></div>' +
+      '<pre class="ex"></pre>' +
+      (s.full ? '<div class="full"><a href="' + s.full + '">open the full dump</a> <span>' + s.fullNote + '</span></div>' : '') +
+      '<div class="lbl">in C and CUDA C</div><div class="cousin">' + s.cousin + '</div>' +
+      '<div class="lbl">see it yourself, on the pod</div><pre class="cmd"></pre>';
+    d.querySelector('pre.ex').textContent = s.excerpt;
+    d.querySelector('pre.cmd').textContent = s.see;
+    return d;
+  }
+  function select(i) {
+    cur = Math.max(0, Math.min(stages.length - 1, i));
+    Array.prototype.forEach.call(map.querySelectorAll('.chip'), function (c) { c.classList.toggle('cur', parseInt(c.dataset.i, 10) === cur); });
+    if (showall.checked) return;
+    detail.innerHTML = '';
+    detail.appendChild(panel(cur));
+    pos.textContent = 'stage ' + (cur + 1) + ' of ' + stages.length + ' · ' + (stages[cur].lane === 'build' ? 'build time' : 'run time');
+    prev.disabled = cur === 0; next.disabled = cur === stages.length - 1;
+  }
+  function renderAll() {
+    detail.innerHTML = '';
+    detail.className = 'all';
+    stages.forEach(function (s, i) { detail.appendChild(panel(i)); });
+    pos.textContent = 'all ' + stages.length + ' stages';
+    prev.disabled = true; next.disabled = true;
+  }
+  prev.addEventListener('click', function () { select(cur - 1); });
+  next.addEventListener('click', function () { select(cur + 1); });
+  showall.addEventListener('change', function () {
+    if (showall.checked) renderAll(); else { detail.className = ''; select(cur); }
+  });
+  document.getElementById('stepper').addEventListener('keydown', function (e) {
+    if (showall.checked) return;
+    if (e.key === 'ArrowRight') { select(cur + 1); e.preventDefault(); }
+    if (e.key === 'ArrowLeft') { select(cur - 1); e.preventDefault(); }
+  });
+  buildMap();
+  select(0);
+
+  // ---------------------------------------------------------------- fleet explorer
+  var gx = document.getElementById('gx'), gy = document.getElementById('gy');
+  var cells = document.getElementById('cells'), term = document.getElementById('term');
+  var caption = document.getElementById('caption'), btn = document.getElementById('launch');
+  var recorded = [
+    { order: [[0, 1, 0], [0, 0, 0], [1, 0, 0], [1, 1, 0]], note: 'recorded on the pod, first run of the (2, 2, 1) grid' },
+    { order: [[0, 1, 0], [1, 1, 0], [0, 0, 0], [1, 0, 0]], note: 'recorded on the pod, a later run of the same binary' }
+  ];
+  var reduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var timers = [], launches = 0;
+
+  function dims() { return { x: parseInt(gx.value, 10), y: parseInt(gy.value, 10) }; }
+  function ids(d) { var a = []; for (var y = 0; y < d.y; y++) for (var x = 0; x < d.x; x++) a.push([x, y, 0]); return a; }
+  function key(p) { return p.join(','); }
+  function line(p, d) { return 'Hello, I am program <' + p[0] + ', ' + p[1] + ', ' + p[2] + '> in a kernel with <' + d.x + ', ' + d.y + ', 1> programs.'; }
+  function shuffle(a) { for (var i = a.length - 1; i > 0; i--) { var j = Math.floor(Math.random() * (i + 1)); var t = a[i]; a[i] = a[j]; a[j] = t; } return a; }
+
+  function renderCells(d) {
+    cells.innerHTML = '';
+    cells.style.gridTemplateColumns = 'repeat(' + d.x + ', minmax(44px, 72px))';
+    ids(d).forEach(function (p) {
+      var c = document.createElement('div');
+      c.className = 'cell'; c.dataset.k = key(p);
+      c.textContent = '<' + p[0] + ',' + p[1] + ',' + p[2] + '>';
+      cells.appendChild(c);
+    });
+  }
+  function clearTimers() { timers.forEach(clearTimeout); timers = []; }
+  function play(order, d, note) {
+    clearTimers();
+    term.textContent = '';
+    Array.prototype.forEach.call(cells.children, function (c) { c.classList.remove('lit'); });
+    var header = document.createElement('span');
+    header.className = 'dim';
+    header.textContent = '$ cargo run -p cutile-examples --example hello_world\n# ' + note + '\n';
+    term.appendChild(header);
+    order.forEach(function (p, i) {
+      var step = function () {
+        term.appendChild(document.createTextNode(line(p, d) + '\n'));
+        var c = cells.querySelector('[data-k="' + key(p) + '"]');
+        if (c) c.classList.add('lit');
+      };
+      if (reduced) step(); else timers.push(setTimeout(step, 180 * (i + 1)));
+    });
+  }
+  function launch(fromControl) {
+    var d = dims();
+    renderCells(d);
+    var n = d.x * d.y;
+    if (d.x === 2 && d.y === 2 && launches < recorded.length && !fromControl) {
+      play(recorded[launches].order, d, recorded[launches].note);
+      caption.textContent = 'Four robots, one instruction sheet. ' + (launches === 0 ? 'Robot <0, 1, 0> logged first that time.' : 'Same fleet, different finishing order.') + ' Launch again for a simulated run.';
+    } else {
+      play(shuffle(ids(d)), d, 'simulated launch; the order is shuffled because the GPU never promised one');
+      caption.textContent = n + ' robot' + (n === 1 ? '' : 's') + ' on a (' + d.x + ', ' + d.y + ', 1) grid, each with its own cell. Launch again to see another order.';
+    }
+    launches++;
+  }
+  gx.addEventListener('change', function () { launch(true); });
+  gy.addEventListener('change', function () { launch(true); });
+  btn.addEventListener('click', function () { launch(false); });
+  launch(false);
+})();
+</script>

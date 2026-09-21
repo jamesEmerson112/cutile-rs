@@ -1,0 +1,1153 @@
+===== JIT run with dumps =====
+exit=0
+----- stdout
+GENERATED ENTRY POINT: hello_world_module::hello_world_kernel
+#[cutile::entry(print_ir = true)]
+fn hello_world_kernel_entry() {
+    { __cutile_user_impl_hello_world_kernel() };
+}
+
+
+COMPILED IR: hello_world_module::hello_world_kernel
+cuda_tile.module @hello_world_module {
+  entry @hello_world_kernel_entry() di_name = "hello_world_kernel" {
+    %0 = constant <i32: 0> : tile<i32>
+    %1, %2, %3 = get_tile_block_id : tile<i32>
+    %4 = assume bounded<0, ?>, %1 : tile<i32>
+    %5 = assume bounded<0, ?>, %2 : tile<i32>
+    %6 = assume bounded<0, ?>, %3 : tile<i32>
+    %7 = constant <i32: 0> : tile<i32>
+    %9 = constant <i1: 1> : tile<i1>
+    %10 = constant <i32: 1> : tile<i32>
+    %11, %12, %13 = get_tile_block_id : tile<i32>
+    %14 = assume bounded<0, ?>, %11 : tile<i32>
+    %15 = assume bounded<0, ?>, %12 : tile<i32>
+    %16 = assume bounded<0, ?>, %13 : tile<i32>
+    %17 = constant <i32: 0> : tile<i32>
+    %19 = constant <i1: 0> : tile<i1>
+    %20 = constant <i32: 1> : tile<i32>
+    %22 = constant <i1: 1> : tile<i1>
+    %23 = constant <i32: 2> : tile<i32>
+    %24, %25, %26 = get_tile_block_id : tile<i32>
+    %27 = assume bounded<0, ?>, %24 : tile<i32>
+    %28 = assume bounded<0, ?>, %25 : tile<i32>
+    %29 = assume bounded<0, ?>, %26 : tile<i32>
+    %30 = constant <i32: 0> : tile<i32>
+    %32 = constant <i1: 0> : tile<i1>
+    %33 = constant <i32: 1> : tile<i32>
+    %35 = constant <i1: 0> : tile<i1>
+    %36 = constant <i32: 2> : tile<i32>
+    %38 = constant <i1: 1> : tile<i1>
+    assert %38, "program_id: axis must be 0, 1, or 2" : tile<i1>
+    %39 = constant <i32: 0> : tile<i32>
+    %40, %41, %42 = get_num_tile_blocks : tile<i32>
+    %43 = assume bounded<0, ?>, %40 : tile<i32>
+    %44 = assume bounded<0, ?>, %41 : tile<i32>
+    %45 = assume bounded<0, ?>, %42 : tile<i32>
+    %46 = constant <i32: 0> : tile<i32>
+    %48 = constant <i1: 1> : tile<i1>
+    %49 = constant <i32: 1> : tile<i32>
+    %50, %51, %52 = get_num_tile_blocks : tile<i32>
+    %53 = assume bounded<0, ?>, %50 : tile<i32>
+    %54 = assume bounded<0, ?>, %51 : tile<i32>
+    %55 = assume bounded<0, ?>, %52 : tile<i32>
+    %56 = constant <i32: 0> : tile<i32>
+    %58 = constant <i1: 0> : tile<i1>
+    %59 = constant <i32: 1> : tile<i32>
+    %61 = constant <i1: 1> : tile<i1>
+    %62 = constant <i32: 2> : tile<i32>
+    %63, %64, %65 = get_num_tile_blocks : tile<i32>
+    %66 = assume bounded<0, ?>, %63 : tile<i32>
+    %67 = assume bounded<0, ?>, %64 : tile<i32>
+    %68 = assume bounded<0, ?>, %65 : tile<i32>
+    %69 = constant <i32: 0> : tile<i32>
+    %71 = constant <i1: 0> : tile<i1>
+    %72 = constant <i32: 1> : tile<i32>
+    %74 = constant <i1: 0> : tile<i1>
+    %75 = constant <i32: 2> : tile<i32>
+    %77 = constant <i1: 1> : tile<i1>
+    assert %77, "num_programs: axis must be 0, 1, or 2" : tile<i1>
+    %78 = print_tko "Hello, I am program <%i, %i, %i> in a kernel with <%i, %i, %i> programs.\n", %4, %15, %29, %43, %54, %68 : tile<i32>, tile<i32>, tile<i32>, tile<i32>, tile<i32>, tile<i32>
+    return
+  }
+}
+
+Hello, I am program <0, 1, 0> in a kernel with <2, 2, 1> programs.
+Hello, I am program <1, 1, 0> in a kernel with <2, 2, 1> programs.
+Hello, I am program <0, 0, 0> in a kernel with <2, 2, 1> programs.
+Hello, I am program <1, 0, 0> in a kernel with <2, 2, 1> programs.
+----- stderr line count: 175
+----- stderr, lines that are not IR body
+1:cutile setup: using CUDA_TOOLKIT_PATH tileiras at /usr/local/cuda-13.3/bin/tileiras
+2:[cutile::jit] hello_world_module::hello_world_kernel → JIT compiling...
+3:=== CUTILE DUMP: ir (hello_world_module) ===
+4:cuda_tile.module @hello_world_module {
+5:  entry @hello_world_kernel_entry() di_name = "hello_world_kernel" {
+65:}
+66:
+67:=== END ir ===
+68:
+69:cutile setup: bytecode version 13.3 from /usr/local/cuda-13.3/include/cuda.h
+70:=== CUTILE DUMP: bytecode (hello_world_module) ===
+71:TileIR bytecode v13.3
+72:
+73:=== Strings (18) ===
+74:  [0] "sym_name"
+75:  [1] "hello_world_kernel_entry"
+76:  [2] "di_name"
+77:  [3] "hello_world_kernel"
+78:  [4] "function_type"
+79:  [5] "value"
+80:  [6] "predicate"
+81:  [7] "message"
+82:  [8] "program_id: axis must be 0, 1, or 2"
+83:  [9] "num_programs: axis must be 0, 1, or 2"
+84:  [10] "str"
+85:  [11] "Hello, I am program <%i, %i, %i> in a kernel with <%i, %i, %i> programs.\n"
+86:  [12] "operandSegmentSizes"
+87:  [13] ""
+88:  [14] "hello_world.rs"
+89:  [15] "cutile-examples/examples"
+90:  [16] "cutile-examples/examples/hello_world.rs"
+91:  [17] "hello_world_kernel@hello_world:18:7"
+92:
+93:=== Types (6) ===
+94:  [0] () -> ()
+95:  [1] i32
+96:  [2] tile<i32>
+97:  [3] i1
+98:  [4] tile<i1>
+99:  [5] token
+100:
+101:=== Constants (30) ===
+102:  [0] 5 bytes
+103:  [1] 5 bytes
+104:  [2] 2 bytes
+105:  [3] 5 bytes
+106:  [4] 5 bytes
+107:  [5] 2 bytes
+108:  [6] 5 bytes
+109:  [7] 2 bytes
+110:  [8] 5 bytes
+111:  [9] 5 bytes
+112:  [10] 2 bytes
+113:  [11] 5 bytes
+114:  [12] 2 bytes
+115:  [13] 5 bytes
+116:  [14] 2 bytes
+117:  [15] 5 bytes
+118:  [16] 5 bytes
+119:  [17] 2 bytes
+120:  [18] 5 bytes
+121:  [19] 5 bytes
+122:  [20] 2 bytes
+123:  [21] 5 bytes
+124:  [22] 2 bytes
+125:  [23] 5 bytes
+126:  [24] 5 bytes
+127:  [25] 2 bytes
+128:  [26] 5 bytes
+129:  [27] 2 bytes
+130:  [28] 5 bytes
+131:  [29] 2 bytes
+132:
+133:=== Functions (1) ===
+134:  entry @hello_world_kernel_entry : () -> ()
+135:    body: 243 bytes, ~243 ops
+136:
+137:=== Debug (1 functions) ===
+138:  di[1] = DIFile(name="hello_world.rs", dir="cutile-examples/examples")
+139:  di[2] = DICompileUnit(file=di[1])
+----- dump dir
+total 4
+drwxr-xr-x 2 root root   10 Sep 18 06:13 .
+drwx------ 1 root root 4096 Sep 18 06:13 ..
+/root/collect-excerpts.sh: line 21: file: command not found
+== /root/dump/* ()
+/root/collect-excerpts.sh: line 22: file: command not found
+od: '/root/dump/*': No such file or directory
+===== launcher dump =====
+total 104
+drwxr-xr-x 2 root root  4096 Sep 18 06:14 .
+drwx------ 1 root root  4096 Sep 18 06:13 ..
+-rw-r--r-- 1 root root 19628 Sep 18 06:14 conversion_convert_launcher.rs
+-rw-r--r-- 1 root root 13935 Sep 18 06:14 creation_arange_launcher.rs
+-rw-r--r-- 1 root root 13602 Sep 18 06:14 creation_eye_launcher.rs
+-rw-r--r-- 1 root root 14135 Sep 18 06:14 creation_full_launcher.rs
+-rw-r--r-- 1 root root 14297 Sep 18 06:14 creation_linspace_launcher.rs
+-rw-r--r-- 1 root root  9476 Sep 18 06:14 hello_world_module_hello_world_kernel_launcher.rs
+== /root/launchers/conversion_convert_launcher.rs (550 lines)
+pub struct Convert<
+    SrcType: Send + DType,
+    DstType: Send + DType,
+    _K0: KernelInput<SrcType>,
+    _P0: KernelOutput<DstType>,
+    DI: DeviceOp<
+            Output = (
+                <_K0 as KernelInput<SrcType>>::Stored,
+                <_P0 as KernelOutput<DstType>>::Stored,
+            ),
+        >,
+> {
+    _const_grid: bool,
+    _grid: (u32, u32, u32),
+    input: Option<DI>,
+    function_generics: Option<Vec<String>>,
+    _phantom: std::marker::PhantomData<(_K0, _P0, SrcType, DstType)>,
+    _compile_options: CompileOptions,
+    _compile_only: bool,
+}
+impl<
+    SrcType: Send + DType,
+    DstType: Send + DType,
+    _K0: KernelInput<SrcType>,
+    _P0: KernelOutput<DstType>,
+    DI: DeviceOp<
+            Output = (
+                <_K0 as KernelInput<SrcType>>::Stored,
+                <_P0 as KernelOutput<DstType>>::Stored,
+            ),
+        >,
+> Convert<SrcType, DstType, _K0, _P0, DI> {
+    pub fn launch(input: DI) -> Self {
+        Self {
+            _const_grid: false,
+            _grid: (0, 0, 0),
+            input: Some(input),
+            function_generics: None,
+            _phantom: std::marker::PhantomData,
+            _compile_options: CompileOptions::default(),
+            _compile_only: false,
+        }
+    }
+    pub fn compile(mut self) -> Result<(), DeviceError> {
+        self._compile_only = true;
+        self.sync()?;
+        Ok(())
+    }
+    pub fn compile_on(mut self, stream: &Arc<Stream>) -> Result<(), DeviceError> {
+        self._compile_only = true;
+        self.sync_on(stream)?;
+        Ok(())
+    }
+    /// Resolves the specialization identity for this launch without compiling or launching the kernel.
+    pub fn specialize(self) -> Result<Specialization<ModuleAstFn>, DeviceError> {
+        let stream = with_default_device_policy(|policy| policy.next_stream())??;
+        self.specialize_on(&stream)
+    }
+    /// Resolves the specialization identity for this launch on `stream` without compiling or launching the kernel.
+    pub fn specialize_on(
+        self,
+        stream: &Arc<Stream>,
+    ) -> Result<Specialization<ModuleAstFn>, DeviceError> {
+        with_context(move |ctx| value(unsafe { self._resolve_specialization(ctx) }))
+            .sync_on(stream)?
+    }
+    pub fn l1_cache_key(self) -> Result<TileFunctionKey, DeviceError> {
+        Ok(self.specialize()?.into_l1_cache_key())
+    }
+    pub fn l1_cache_key_on(
+        self,
+        stream: &Arc<Stream>,
+    ) -> Result<TileFunctionKey, DeviceError> {
+        Ok(self.specialize_on(stream)?.into_l1_cache_key())
+    }
+    pub fn l2_cache_key(self) -> Result<String, DeviceError> {
+        self.specialize()?
+            .l2_cache_key()
+            .map_err(|error| DeviceError::from(Error::from(error)))
+    }
+    pub fn l2_cache_key_on(self, stream: &Arc<Stream>) -> Result<String, DeviceError> {
+        self.specialize_on(stream)?
+            .l2_cache_key()
+            .map_err(|error| DeviceError::from(Error::from(error)))
+    }
+}
+impl<
+    SrcType: Send + DType,
+    DstType: Send + DType,
+    _K0: KernelInput<SrcType>,
+    _P0: KernelOutput<DstType>,
+    DI: DeviceOp<
+            Output = (
+                <_K0 as KernelInput<SrcType>>::Stored,
+                <_P0 as KernelOutput<DstType>>::Stored,
+            ),
+        >,
+> TileKernel<
+    (<_K0 as KernelInput<SrcType>>::Returned, <_P0 as KernelOutput<DstType>>::Returned),
+    DI,
+    (<_K0 as KernelInput<SrcType>>::Stored, <_P0 as KernelOutput<DstType>>::Stored),
+> for Convert<SrcType, DstType, _K0, _P0, DI> {
+    fn grid(mut self, grid: (u32, u32, u32)) -> Self {
+        self._grid = grid;
+        self._const_grid = false;
+        self
+    }
+    fn const_grid(mut self, grid: (u32, u32, u32)) -> Self {
+        self._grid = grid;
+        self._const_grid = true;
+        self
+    }
+    fn get_launch_grid(&self) -> (u32, u32, u32) {
+        self._grid
+    }
+    fn generics(mut self, generics: Vec<String>) -> Self {
+        self.function_generics = Some(generics);
+        self
+    }
+    fn compile_options(mut self, options: CompileOptions) -> Self {
+        self._compile_options = options;
+        self
+    }
+}
+impl<
+    SrcType: Send + DType,
+    DstType: Send + DType,
+    _K0: KernelInput<SrcType>,
+    _P0: KernelOutput<DstType>,
+    DI: DeviceOp<
+            Output = (
+                <_K0 as KernelInput<SrcType>>::Stored,
+                <_P0 as KernelOutput<DstType>>::Stored,
+            ),
+        >,
+> IntoFuture for Convert<SrcType, DstType, _K0, _P0, DI> {
+    type Output = Result<
+        (
+            <_K0 as KernelInput<SrcType>>::Returned,
+            <_P0 as KernelOutput<DstType>>::Returned,
+        ),
+        DeviceError,
+    >;
+    type IntoFuture = DeviceFuture<
+        (
+            <_K0 as KernelInput<SrcType>>::Returned,
+            <_P0 as KernelOutput<DstType>>::Returned,
+        ),
+        Convert<SrcType, DstType, _K0, _P0, DI>,
+    >;
+== /root/launchers/creation_arange_launcher.rs (377 lines)
+pub struct Arange<
+    T: Send + DType,
+    _P0: KernelOutput<T>,
+    DI: DeviceOp<Output = (<_P0 as KernelOutput<T>>::Stored,)>,
+> {
+    _const_grid: bool,
+    _grid: (u32, u32, u32),
+    input: Option<DI>,
+    function_generics: Option<Vec<String>>,
+    _phantom: std::marker::PhantomData<(_P0, T)>,
+    _compile_options: CompileOptions,
+    _compile_only: bool,
+}
+impl<
+    T: Send + DType,
+    _P0: KernelOutput<T>,
+    DI: DeviceOp<Output = (<_P0 as KernelOutput<T>>::Stored,)>,
+> Arange<T, _P0, DI> {
+    pub fn launch(input: DI) -> Self {
+        Self {
+            _const_grid: false,
+            _grid: (0, 0, 0),
+            input: Some(input),
+            function_generics: None,
+            _phantom: std::marker::PhantomData,
+            _compile_options: CompileOptions::default(),
+            _compile_only: false,
+        }
+    }
+    pub fn compile(mut self) -> Result<(), DeviceError> {
+        self._compile_only = true;
+        self.sync()?;
+        Ok(())
+    }
+    pub fn compile_on(mut self, stream: &Arc<Stream>) -> Result<(), DeviceError> {
+        self._compile_only = true;
+        self.sync_on(stream)?;
+        Ok(())
+    }
+    /// Resolves the specialization identity for this launch without compiling or launching the kernel.
+    pub fn specialize(self) -> Result<Specialization<ModuleAstFn>, DeviceError> {
+        let stream = with_default_device_policy(|policy| policy.next_stream())??;
+        self.specialize_on(&stream)
+    }
+    /// Resolves the specialization identity for this launch on `stream` without compiling or launching the kernel.
+    pub fn specialize_on(
+        self,
+        stream: &Arc<Stream>,
+    ) -> Result<Specialization<ModuleAstFn>, DeviceError> {
+        with_context(move |ctx| value(unsafe { self._resolve_specialization(ctx) }))
+            .sync_on(stream)?
+    }
+    pub fn l1_cache_key(self) -> Result<TileFunctionKey, DeviceError> {
+        Ok(self.specialize()?.into_l1_cache_key())
+    }
+    pub fn l1_cache_key_on(
+        self,
+        stream: &Arc<Stream>,
+    ) -> Result<TileFunctionKey, DeviceError> {
+        Ok(self.specialize_on(stream)?.into_l1_cache_key())
+    }
+    pub fn l2_cache_key(self) -> Result<String, DeviceError> {
+        self.specialize()?
+            .l2_cache_key()
+            .map_err(|error| DeviceError::from(Error::from(error)))
+    }
+    pub fn l2_cache_key_on(self, stream: &Arc<Stream>) -> Result<String, DeviceError> {
+        self.specialize_on(stream)?
+            .l2_cache_key()
+            .map_err(|error| DeviceError::from(Error::from(error)))
+    }
+}
+impl<
+    T: Send + DType,
+    _P0: KernelOutput<T>,
+    DI: DeviceOp<Output = (<_P0 as KernelOutput<T>>::Stored,)>,
+> TileKernel<
+    (<_P0 as KernelOutput<T>>::Returned,),
+    DI,
+    (<_P0 as KernelOutput<T>>::Stored,),
+> for Arange<T, _P0, DI> {
+    fn grid(mut self, grid: (u32, u32, u32)) -> Self {
+        self._grid = grid;
+        self._const_grid = false;
+        self
+    }
+    fn const_grid(mut self, grid: (u32, u32, u32)) -> Self {
+        self._grid = grid;
+        self._const_grid = true;
+        self
+    }
+    fn get_launch_grid(&self) -> (u32, u32, u32) {
+        self._grid
+    }
+    fn generics(mut self, generics: Vec<String>) -> Self {
+        self.function_generics = Some(generics);
+        self
+    }
+    fn compile_options(mut self, options: CompileOptions) -> Self {
+        self._compile_options = options;
+        self
+    }
+}
+impl<
+    T: Send + DType,
+    _P0: KernelOutput<T>,
+    DI: DeviceOp<Output = (<_P0 as KernelOutput<T>>::Stored,)>,
+> IntoFuture for Arange<T, _P0, DI> {
+    type Output = Result<(<_P0 as KernelOutput<T>>::Returned,), DeviceError>;
+    type IntoFuture = DeviceFuture<
+        (<_P0 as KernelOutput<T>>::Returned,),
+        Arange<T, _P0, DI>,
+    >;
+    fn into_future(self) -> Self::IntoFuture {
+        match with_default_device_policy(|policy| {
+            let stream = policy.next_stream()?;
+            Ok(DeviceFuture::scheduled(self, ExecutionContext::new(stream)))
+        }) {
+            Ok(Ok(future)) => future,
+            Ok(Err(e)) => DeviceFuture::failed(e),
+            Err(e) => DeviceFuture::failed(e),
+        }
+    }
+}
+impl<
+    T: Send + DType,
+    _P0: KernelOutput<T>,
+    DI: DeviceOp<Output = (<_P0 as KernelOutput<T>>::Stored,)>,
+> Arange<T, _P0, DI> {
+    unsafe fn _resolve_specialization(
+        mut self,
+        ctx: &ExecutionContext,
+    ) -> Result<Specialization<ModuleAstFn>, DeviceError> {
+        let module_name = "creation";
+        let function_name = "arange";
+        let input = self.input.take().unwrap();
+        let (tensor,): (<_P0 as KernelOutput<T>>::Stored,) = input.execute(ctx)?;
+        let function_generics: Vec<String> = if self.function_generics.is_some() {
+            self.function_generics.take().unwrap()
+        } else {
+            vec![
+                vec![tensor.dtype_str().to_string()],
+                KernelOutputStored::partition_shape_as_i32(&tensor)
+                    .iter()
+                    .map(|x| x.to_string())
+                    .collect::<Vec<String>>(),
+            ]
+                .concat()
+        };
+        let stride_args: Vec<(String, Vec<i32>)> = vec![
+== /root/launchers/creation_eye_launcher.rs (363 lines)
+pub struct Eye<
+    _P0: KernelOutput<f32>,
+    DI: DeviceOp<Output = (<_P0 as KernelOutput<f32>>::Stored,)>,
+> {
+    _const_grid: bool,
+    _grid: (u32, u32, u32),
+    input: Option<DI>,
+    function_generics: Option<Vec<String>>,
+    _phantom: std::marker::PhantomData<(_P0,)>,
+    _compile_options: CompileOptions,
+    _compile_only: bool,
+}
+impl<
+    _P0: KernelOutput<f32>,
+    DI: DeviceOp<Output = (<_P0 as KernelOutput<f32>>::Stored,)>,
+> Eye<_P0, DI> {
+    pub fn launch(input: DI) -> Self {
+        Self {
+            _const_grid: false,
+            _grid: (0, 0, 0),
+            input: Some(input),
+            function_generics: None,
+            _phantom: std::marker::PhantomData,
+            _compile_options: CompileOptions::default(),
+            _compile_only: false,
+        }
+    }
+    pub fn compile(mut self) -> Result<(), DeviceError> {
+        self._compile_only = true;
+        self.sync()?;
+        Ok(())
+    }
+    pub fn compile_on(mut self, stream: &Arc<Stream>) -> Result<(), DeviceError> {
+        self._compile_only = true;
+        self.sync_on(stream)?;
+        Ok(())
+    }
+    /// Resolves the specialization identity for this launch without compiling or launching the kernel.
+    pub fn specialize(self) -> Result<Specialization<ModuleAstFn>, DeviceError> {
+        let stream = with_default_device_policy(|policy| policy.next_stream())??;
+        self.specialize_on(&stream)
+    }
+    /// Resolves the specialization identity for this launch on `stream` without compiling or launching the kernel.
+    pub fn specialize_on(
+        self,
+        stream: &Arc<Stream>,
+    ) -> Result<Specialization<ModuleAstFn>, DeviceError> {
+        with_context(move |ctx| value(unsafe { self._resolve_specialization(ctx) }))
+            .sync_on(stream)?
+    }
+    pub fn l1_cache_key(self) -> Result<TileFunctionKey, DeviceError> {
+        Ok(self.specialize()?.into_l1_cache_key())
+    }
+    pub fn l1_cache_key_on(
+        self,
+        stream: &Arc<Stream>,
+    ) -> Result<TileFunctionKey, DeviceError> {
+        Ok(self.specialize_on(stream)?.into_l1_cache_key())
+    }
+    pub fn l2_cache_key(self) -> Result<String, DeviceError> {
+        self.specialize()?
+            .l2_cache_key()
+            .map_err(|error| DeviceError::from(Error::from(error)))
+    }
+    pub fn l2_cache_key_on(self, stream: &Arc<Stream>) -> Result<String, DeviceError> {
+        self.specialize_on(stream)?
+            .l2_cache_key()
+            .map_err(|error| DeviceError::from(Error::from(error)))
+    }
+}
+impl<
+    _P0: KernelOutput<f32>,
+    DI: DeviceOp<Output = (<_P0 as KernelOutput<f32>>::Stored,)>,
+> TileKernel<
+    (<_P0 as KernelOutput<f32>>::Returned,),
+    DI,
+    (<_P0 as KernelOutput<f32>>::Stored,),
+> for Eye<_P0, DI> {
+    fn grid(mut self, grid: (u32, u32, u32)) -> Self {
+        self._grid = grid;
+        self._const_grid = false;
+        self
+    }
+    fn const_grid(mut self, grid: (u32, u32, u32)) -> Self {
+        self._grid = grid;
+        self._const_grid = true;
+        self
+    }
+    fn get_launch_grid(&self) -> (u32, u32, u32) {
+        self._grid
+    }
+    fn generics(mut self, generics: Vec<String>) -> Self {
+        self.function_generics = Some(generics);
+        self
+    }
+    fn compile_options(mut self, options: CompileOptions) -> Self {
+        self._compile_options = options;
+        self
+    }
+}
+impl<
+    _P0: KernelOutput<f32>,
+    DI: DeviceOp<Output = (<_P0 as KernelOutput<f32>>::Stored,)>,
+> IntoFuture for Eye<_P0, DI> {
+    type Output = Result<(<_P0 as KernelOutput<f32>>::Returned,), DeviceError>;
+    type IntoFuture = DeviceFuture<
+        (<_P0 as KernelOutput<f32>>::Returned,),
+        Eye<_P0, DI>,
+    >;
+    fn into_future(self) -> Self::IntoFuture {
+        match with_default_device_policy(|policy| {
+            let stream = policy.next_stream()?;
+            Ok(DeviceFuture::scheduled(self, ExecutionContext::new(stream)))
+        }) {
+            Ok(Ok(future)) => future,
+            Ok(Err(e)) => DeviceFuture::failed(e),
+            Err(e) => DeviceFuture::failed(e),
+        }
+    }
+}
+impl<
+    _P0: KernelOutput<f32>,
+    DI: DeviceOp<Output = (<_P0 as KernelOutput<f32>>::Stored,)>,
+> Eye<_P0, DI> {
+    unsafe fn _resolve_specialization(
+        mut self,
+        ctx: &ExecutionContext,
+    ) -> Result<Specialization<ModuleAstFn>, DeviceError> {
+        let module_name = "creation";
+        let function_name = "eye";
+        let input = self.input.take().unwrap();
+        let (tensor,): (<_P0 as KernelOutput<f32>>::Stored,) = input.execute(ctx)?;
+        let function_generics: Vec<String> = if self.function_generics.is_some() {
+            self.function_generics.take().unwrap()
+        } else {
+            vec![
+                vec![KernelOutputStored::partition_shape_as_i32(&tensor)[0].to_string()],
+                vec![KernelOutputStored::partition_shape_as_i32(&tensor)[1].to_string()],
+            ]
+                .concat()
+        };
+        let stride_args: Vec<(String, Vec<i32>)> = vec![
+            ("tensor".to_string(), KernelOutputStored::strides_hint(&tensor)),
+        ];
+        let spec_args: Vec<
+            (String, crate::cutile_compiler::specialization::SpecializationBits),
+        > = vec![("tensor".to_string(), KernelOutputStored::spec(&tensor).clone())];
+        let scalar_hints: Vec<
+            (String, crate::cutile_compiler::specialization::DivHint),
+        > = vec![];
+== /root/launchers/creation_full_launcher.rs (387 lines)
+pub struct Full<
+    T: Send + DType,
+    _P0: KernelOutput<T>,
+    DI: DeviceOp<Output = (T, <_P0 as KernelOutput<T>>::Stored)>,
+> {
+    _const_grid: bool,
+    _grid: (u32, u32, u32),
+    input: Option<DI>,
+    function_generics: Option<Vec<String>>,
+    _phantom: std::marker::PhantomData<(_P0, T)>,
+    _compile_options: CompileOptions,
+    _compile_only: bool,
+}
+impl<
+    T: Send + DType,
+    _P0: KernelOutput<T>,
+    DI: DeviceOp<Output = (T, <_P0 as KernelOutput<T>>::Stored)>,
+> Full<T, _P0, DI> {
+    pub fn launch(input: DI) -> Self {
+        Self {
+            _const_grid: false,
+            _grid: (0, 0, 0),
+            input: Some(input),
+            function_generics: None,
+            _phantom: std::marker::PhantomData,
+            _compile_options: CompileOptions::default(),
+            _compile_only: false,
+        }
+    }
+    pub fn compile(mut self) -> Result<(), DeviceError> {
+        self._compile_only = true;
+        self.sync()?;
+        Ok(())
+    }
+    pub fn compile_on(mut self, stream: &Arc<Stream>) -> Result<(), DeviceError> {
+        self._compile_only = true;
+        self.sync_on(stream)?;
+        Ok(())
+    }
+    /// Resolves the specialization identity for this launch without compiling or launching the kernel.
+    pub fn specialize(self) -> Result<Specialization<ModuleAstFn>, DeviceError> {
+        let stream = with_default_device_policy(|policy| policy.next_stream())??;
+        self.specialize_on(&stream)
+    }
+    /// Resolves the specialization identity for this launch on `stream` without compiling or launching the kernel.
+    pub fn specialize_on(
+        self,
+        stream: &Arc<Stream>,
+    ) -> Result<Specialization<ModuleAstFn>, DeviceError> {
+        with_context(move |ctx| value(unsafe { self._resolve_specialization(ctx) }))
+            .sync_on(stream)?
+    }
+    pub fn l1_cache_key(self) -> Result<TileFunctionKey, DeviceError> {
+        Ok(self.specialize()?.into_l1_cache_key())
+    }
+    pub fn l1_cache_key_on(
+        self,
+        stream: &Arc<Stream>,
+    ) -> Result<TileFunctionKey, DeviceError> {
+        Ok(self.specialize_on(stream)?.into_l1_cache_key())
+    }
+    pub fn l2_cache_key(self) -> Result<String, DeviceError> {
+        self.specialize()?
+            .l2_cache_key()
+            .map_err(|error| DeviceError::from(Error::from(error)))
+    }
+    pub fn l2_cache_key_on(self, stream: &Arc<Stream>) -> Result<String, DeviceError> {
+        self.specialize_on(stream)?
+            .l2_cache_key()
+            .map_err(|error| DeviceError::from(Error::from(error)))
+    }
+}
+impl<
+    T: Send + DType,
+    _P0: KernelOutput<T>,
+    DI: DeviceOp<Output = (T, <_P0 as KernelOutput<T>>::Stored)>,
+> TileKernel<
+    (T, <_P0 as KernelOutput<T>>::Returned),
+    DI,
+    (T, <_P0 as KernelOutput<T>>::Stored),
+> for Full<T, _P0, DI> {
+    fn grid(mut self, grid: (u32, u32, u32)) -> Self {
+        self._grid = grid;
+        self._const_grid = false;
+        self
+    }
+    fn const_grid(mut self, grid: (u32, u32, u32)) -> Self {
+        self._grid = grid;
+        self._const_grid = true;
+        self
+    }
+    fn get_launch_grid(&self) -> (u32, u32, u32) {
+        self._grid
+    }
+    fn generics(mut self, generics: Vec<String>) -> Self {
+        self.function_generics = Some(generics);
+        self
+    }
+    fn compile_options(mut self, options: CompileOptions) -> Self {
+        self._compile_options = options;
+        self
+    }
+}
+impl<
+    T: Send + DType,
+    _P0: KernelOutput<T>,
+    DI: DeviceOp<Output = (T, <_P0 as KernelOutput<T>>::Stored)>,
+> IntoFuture for Full<T, _P0, DI> {
+    type Output = Result<(T, <_P0 as KernelOutput<T>>::Returned), DeviceError>;
+    type IntoFuture = DeviceFuture<
+        (T, <_P0 as KernelOutput<T>>::Returned),
+        Full<T, _P0, DI>,
+    >;
+    fn into_future(self) -> Self::IntoFuture {
+        match with_default_device_policy(|policy| {
+            let stream = policy.next_stream()?;
+            Ok(DeviceFuture::scheduled(self, ExecutionContext::new(stream)))
+        }) {
+            Ok(Ok(future)) => future,
+            Ok(Err(e)) => DeviceFuture::failed(e),
+            Err(e) => DeviceFuture::failed(e),
+        }
+    }
+}
+impl<
+    T: Send + DType,
+    _P0: KernelOutput<T>,
+    DI: DeviceOp<Output = (T, <_P0 as KernelOutput<T>>::Stored)>,
+> Full<T, _P0, DI> {
+    unsafe fn _resolve_specialization(
+        mut self,
+        ctx: &ExecutionContext,
+    ) -> Result<Specialization<ModuleAstFn>, DeviceError> {
+        let module_name = "creation";
+        let function_name = "full";
+        let input = self.input.take().unwrap();
+        let (value, tensor): (T, <_P0 as KernelOutput<T>>::Stored) = input.execute(ctx)?;
+        let function_generics: Vec<String> = if self.function_generics.is_some() {
+            self.function_generics.take().unwrap()
+        } else {
+            vec![
+                vec![tensor.dtype_str().to_string()],
+                KernelOutputStored::partition_shape_as_i32(&tensor)
+                    .iter()
+                    .map(|x| x.to_string())
+                    .collect::<Vec<String>>(),
+            ]
+                .concat()
+        };
+        let stride_args: Vec<(String, Vec<i32>)> = vec![
+== /root/launchers/creation_linspace_launcher.rs (386 lines)
+pub struct Linspace<
+    _P0: KernelOutput<f32>,
+    DI: DeviceOp<Output = (<_P0 as KernelOutput<f32>>::Stored, f32, f32)>,
+> {
+    _const_grid: bool,
+    _grid: (u32, u32, u32),
+    input: Option<DI>,
+    function_generics: Option<Vec<String>>,
+    _phantom: std::marker::PhantomData<(_P0,)>,
+    _compile_options: CompileOptions,
+    _compile_only: bool,
+}
+impl<
+    _P0: KernelOutput<f32>,
+    DI: DeviceOp<Output = (<_P0 as KernelOutput<f32>>::Stored, f32, f32)>,
+> Linspace<_P0, DI> {
+    pub fn launch(input: DI) -> Self {
+        Self {
+            _const_grid: false,
+            _grid: (0, 0, 0),
+            input: Some(input),
+            function_generics: None,
+            _phantom: std::marker::PhantomData,
+            _compile_options: CompileOptions::default(),
+            _compile_only: false,
+        }
+    }
+    pub fn compile(mut self) -> Result<(), DeviceError> {
+        self._compile_only = true;
+        self.sync()?;
+        Ok(())
+    }
+    pub fn compile_on(mut self, stream: &Arc<Stream>) -> Result<(), DeviceError> {
+        self._compile_only = true;
+        self.sync_on(stream)?;
+        Ok(())
+    }
+    /// Resolves the specialization identity for this launch without compiling or launching the kernel.
+    pub fn specialize(self) -> Result<Specialization<ModuleAstFn>, DeviceError> {
+        let stream = with_default_device_policy(|policy| policy.next_stream())??;
+        self.specialize_on(&stream)
+    }
+    /// Resolves the specialization identity for this launch on `stream` without compiling or launching the kernel.
+    pub fn specialize_on(
+        self,
+        stream: &Arc<Stream>,
+    ) -> Result<Specialization<ModuleAstFn>, DeviceError> {
+        with_context(move |ctx| value(unsafe { self._resolve_specialization(ctx) }))
+            .sync_on(stream)?
+    }
+    pub fn l1_cache_key(self) -> Result<TileFunctionKey, DeviceError> {
+        Ok(self.specialize()?.into_l1_cache_key())
+    }
+    pub fn l1_cache_key_on(
+        self,
+        stream: &Arc<Stream>,
+    ) -> Result<TileFunctionKey, DeviceError> {
+        Ok(self.specialize_on(stream)?.into_l1_cache_key())
+    }
+    pub fn l2_cache_key(self) -> Result<String, DeviceError> {
+        self.specialize()?
+            .l2_cache_key()
+            .map_err(|error| DeviceError::from(Error::from(error)))
+    }
+    pub fn l2_cache_key_on(self, stream: &Arc<Stream>) -> Result<String, DeviceError> {
+        self.specialize_on(stream)?
+            .l2_cache_key()
+            .map_err(|error| DeviceError::from(Error::from(error)))
+    }
+}
+impl<
+    _P0: KernelOutput<f32>,
+    DI: DeviceOp<Output = (<_P0 as KernelOutput<f32>>::Stored, f32, f32)>,
+> TileKernel<
+    (<_P0 as KernelOutput<f32>>::Returned, f32, f32),
+    DI,
+    (<_P0 as KernelOutput<f32>>::Stored, f32, f32),
+> for Linspace<_P0, DI> {
+    fn grid(mut self, grid: (u32, u32, u32)) -> Self {
+        self._grid = grid;
+        self._const_grid = false;
+        self
+    }
+    fn const_grid(mut self, grid: (u32, u32, u32)) -> Self {
+        self._grid = grid;
+        self._const_grid = true;
+        self
+    }
+    fn get_launch_grid(&self) -> (u32, u32, u32) {
+        self._grid
+    }
+    fn generics(mut self, generics: Vec<String>) -> Self {
+        self.function_generics = Some(generics);
+        self
+    }
+    fn compile_options(mut self, options: CompileOptions) -> Self {
+        self._compile_options = options;
+        self
+    }
+}
+impl<
+    _P0: KernelOutput<f32>,
+    DI: DeviceOp<Output = (<_P0 as KernelOutput<f32>>::Stored, f32, f32)>,
+> IntoFuture for Linspace<_P0, DI> {
+    type Output = Result<(<_P0 as KernelOutput<f32>>::Returned, f32, f32), DeviceError>;
+    type IntoFuture = DeviceFuture<
+        (<_P0 as KernelOutput<f32>>::Returned, f32, f32),
+        Linspace<_P0, DI>,
+    >;
+    fn into_future(self) -> Self::IntoFuture {
+        match with_default_device_policy(|policy| {
+            let stream = policy.next_stream()?;
+            Ok(DeviceFuture::scheduled(self, ExecutionContext::new(stream)))
+        }) {
+            Ok(Ok(future)) => future,
+            Ok(Err(e)) => DeviceFuture::failed(e),
+            Err(e) => DeviceFuture::failed(e),
+        }
+    }
+}
+impl<
+    _P0: KernelOutput<f32>,
+    DI: DeviceOp<Output = (<_P0 as KernelOutput<f32>>::Stored, f32, f32)>,
+> Linspace<_P0, DI> {
+    unsafe fn _resolve_specialization(
+        mut self,
+        ctx: &ExecutionContext,
+    ) -> Result<Specialization<ModuleAstFn>, DeviceError> {
+        let module_name = "creation";
+        let function_name = "linspace";
+        let input = self.input.take().unwrap();
+        let (tensor, start, step): (<_P0 as KernelOutput<f32>>::Stored, f32, f32) = input
+            .execute(ctx)?;
+        let function_generics: Vec<String> = if self.function_generics.is_some() {
+            self.function_generics.take().unwrap()
+        } else {
+            vec![
+                KernelOutputStored::partition_shape_as_i32(&tensor)
+                    .iter()
+                    .map(|x| x.to_string())
+                    .collect::<Vec<String>>(),
+            ]
+                .concat()
+        };
+        let stride_args: Vec<(String, Vec<i32>)> = vec![
+            ("tensor".to_string(), KernelOutputStored::strides_hint(&tensor)),
+        ];
+        let spec_args: Vec<
+            (String, crate::cutile_compiler::specialization::SpecializationBits),
+        > = vec![("tensor".to_string(), KernelOutputStored::spec(&tensor).clone())];
+== /root/launchers/hello_world_module_hello_world_kernel_launcher.rs (250 lines)
+pub struct HelloWorldKernel<DI: DeviceOp<Output = ()>> {
+    _const_grid: bool,
+    _grid: (u32, u32, u32),
+    input: Option<DI>,
+    function_generics: Option<Vec<String>>,
+    _phantom: std::marker::PhantomData<()>,
+    _compile_options: CompileOptions,
+    _compile_only: bool,
+}
+impl<DI: DeviceOp<Output = ()>> HelloWorldKernel<DI> {
+    pub fn launch(input: DI) -> Self {
+        Self {
+            _const_grid: false,
+            _grid: (0, 0, 0),
+            input: Some(input),
+            function_generics: None,
+            _phantom: std::marker::PhantomData,
+            _compile_options: CompileOptions::default(),
+            _compile_only: false,
+        }
+    }
+    pub fn compile(mut self) -> Result<(), DeviceError> {
+        self._compile_only = true;
+        self.sync()?;
+        Ok(())
+    }
+    pub fn compile_on(mut self, stream: &Arc<Stream>) -> Result<(), DeviceError> {
+        self._compile_only = true;
+        self.sync_on(stream)?;
+        Ok(())
+    }
+    /// Resolves the specialization identity for this launch without compiling or launching the kernel.
+    pub fn specialize(self) -> Result<Specialization<ModuleAstFn>, DeviceError> {
+        let stream = with_default_device_policy(|policy| policy.next_stream())??;
+        self.specialize_on(&stream)
+    }
+    /// Resolves the specialization identity for this launch on `stream` without compiling or launching the kernel.
+    pub fn specialize_on(
+        self,
+        stream: &Arc<Stream>,
+    ) -> Result<Specialization<ModuleAstFn>, DeviceError> {
+        with_context(move |ctx| value(unsafe { self._resolve_specialization(ctx) }))
+            .sync_on(stream)?
+    }
+    pub fn l1_cache_key(self) -> Result<TileFunctionKey, DeviceError> {
+        Ok(self.specialize()?.into_l1_cache_key())
+    }
+    pub fn l1_cache_key_on(
+        self,
+        stream: &Arc<Stream>,
+    ) -> Result<TileFunctionKey, DeviceError> {
+        Ok(self.specialize_on(stream)?.into_l1_cache_key())
+    }
+    pub fn l2_cache_key(self) -> Result<String, DeviceError> {
+        self.specialize()?
+            .l2_cache_key()
+            .map_err(|error| DeviceError::from(Error::from(error)))
+    }
+    pub fn l2_cache_key_on(self, stream: &Arc<Stream>) -> Result<String, DeviceError> {
+        self.specialize_on(stream)?
+            .l2_cache_key()
+            .map_err(|error| DeviceError::from(Error::from(error)))
+    }
+}
+impl<DI: DeviceOp<Output = ()>> TileKernel<(), DI, ()> for HelloWorldKernel<DI> {
+    fn grid(mut self, grid: (u32, u32, u32)) -> Self {
+        self._grid = grid;
+        self._const_grid = false;
+        self
+    }
+    fn const_grid(mut self, grid: (u32, u32, u32)) -> Self {
+        self._grid = grid;
+        self._const_grid = true;
+        self
+    }
+    fn get_launch_grid(&self) -> (u32, u32, u32) {
+        self._grid
+    }
+    fn generics(mut self, generics: Vec<String>) -> Self {
+        self.function_generics = Some(generics);
+        self
+    }
+    fn compile_options(mut self, options: CompileOptions) -> Self {
+        self._compile_options = options;
+        self
+    }
+}
+impl<DI: DeviceOp<Output = ()>> IntoFuture for HelloWorldKernel<DI> {
+    type Output = Result<(), DeviceError>;
+    type IntoFuture = DeviceFuture<(), HelloWorldKernel<DI>>;
+    fn into_future(self) -> Self::IntoFuture {
+        match with_default_device_policy(|policy| {
+            let stream = policy.next_stream()?;
+            Ok(DeviceFuture::scheduled(self, ExecutionContext::new(stream)))
+        }) {
+            Ok(Ok(future)) => future,
+            Ok(Err(e)) => DeviceFuture::failed(e),
+            Err(e) => DeviceFuture::failed(e),
+        }
+    }
+}
+impl<DI: DeviceOp<Output = ()>> HelloWorldKernel<DI> {
+    unsafe fn _resolve_specialization(
+        mut self,
+        ctx: &ExecutionContext,
+    ) -> Result<Specialization<ModuleAstFn>, DeviceError> {
+        let module_name = "hello_world_module";
+        let function_name = "hello_world_kernel";
+        let input = self.input.take().unwrap();
+        let (): () = input.execute(ctx)?;
+        let function_generics: Vec<String> = vec![];
+        let stride_args: Vec<(String, Vec<i32>)> = vec![];
+        let spec_args: Vec<
+            (String, cutile::cutile_compiler::specialization::SpecializationBits),
+        > = vec![];
+        let scalar_hints: Vec<
+            (String, cutile::cutile_compiler::specialization::DivHint),
+        > = vec![];
+        let const_grid = if self._const_grid { Some(self._grid) } else { None };
+        let compile_options = std::mem::take(&mut self._compile_options);
+        return Ok(
+            _specialization_from_context(
+                ctx,
+                __module_ast_self as ModuleAstFn,
+                module_name,
+                function_name,
+                function_generics,
+                stride_args,
+                spec_args,
+                scalar_hints,
+                const_grid,
+                compile_options,
+                _SOURCE_HASH,
+            ),
+        );
+    }
+}
+impl<DI: DeviceOp<Output = ()>> DeviceOp for HelloWorldKernel<DI> {
+    type Output = ();
+    unsafe fn execute(
+        mut self,
+        ctx: &ExecutionContext,
+    ) -> Result<<Self as DeviceOp>::Output, DeviceError> {
+        let module_name = "hello_world_module";
+        let function_name = "hello_world_kernel";
+        let function_entry = "hello_world_kernel_entry";
+        let input = self.input.take().unwrap();
+        let (): () = input.execute(ctx)?;
+        let function_generics: Vec<String> = vec![];
+        let __specs: Vec<&cutile::cutile_compiler::specialization::SpecializationBits> = vec![];
+===== MIR and LLVM IR =====
+-rw-r--r-- 1 root root  1796087 Sep 18 06:14 hello_world-ed981efa6969944e.ll
+-rw-r--r-- 1 root root   107813 Sep 18 06:14 hello_world-ed981efa6969944e.mir
+===== tileiras =====
+/usr/local/cuda-13.3/bin/tileiras
+OVERVIEW: tileiras: NVIDIA (R) Cuda Tile IR optimizing assembler
+
+USAGE: tileiras [options] <tile bytecode file>
+
+OPTIONS:
+
+Generic Options:
+
+  --help                         - Display available options (--help-hidden for more)
+  --help-list                    - Display list of available options (--help-list-hidden for more)
+  --version                      - Display the version of this program
+
+TileIR Assembler Options:
+
+  -O                             - Alias for --opt-level
+  --arch                         - Alias for --gpu-name
+  --device-debug                 - Generate debug information (if present in the input bytecode)
+  -g                             - Alias for --device-debug
+  --gpu-name=<value>             - Specify name of NVIDIA GPU to generate code for.
+    =sm_80                       -   SM 80
+    =sm_86                       -   SM 86
+    =sm_87                       -   SM 87
+    =sm_88                       -   SM 88
+    =sm_89                       -   SM 89
+    =sm_90                       -   SM 90
+    =sm_100                      -   SM 100
+    =sm_103                      -   SM 103
+    =sm_110                      -   SM 110
+    =sm_120                      -   SM 120
+    =sm_121                      -   SM 121
+  --host-arch=<value>            - Specify the architecture for the generated host code.
+    =x86_64                      -   x86_64
+    =aarch64                     -   aarch64
+    =arm64ec                     -   arm64ec
+  --host-os=<value>              - Specify the operating system for the generated host code.
+    =linux                       -   linux
+    =windows                     -   windows
+  --lineinfo                     - Generate line-number information (if present in the input bytecode)
+  --list-versions                - List all supported bytecode versions and exit
+  -o                             - Alias for --output-file
+  --opt-level=<N>                - Specify optimization level. Default Value: 3.
+  --output-file=<file>           - Specify name of output file.
+  --sanitize=<value>             - Enable compiler instrumentation for the sanitizer tool specified by the option.
+    =memcheck                    -   Sanitize memory accesses
+
+TileIR Assembler Remark Options:
+Filter remarks by category.
+
+  --remark-format=<value>        - Specify the format for remark output
+    =command-line                -   Print remarks to command-line
+    =yaml                        -   Write remarks to YAML file
+  --remark-policy=<value>        - Specify the policy for remark output
+    =all                         -   Print all remarks (internal)
+    =final                       -   Print only final remarks
+  --remarks=<value>              - Enable all remark types (passed, missed, failed, analysis) for the specified category
+    =none                        -   Disable all remarks
+    =all                         -   Show all remarks
+    =memory                      -   Show memory-related remarks
+    =tensorcore                  -   Show tensor-core remarks
+  --remarks-analysis=<value>     - Category for analysis optimization remarks
+===== cuobjdump =====
+/usr/local/cuda-13.3/bin/cuobjdump
+/usr/local/cuda-13.3/bin/nvdisasm
+COLLECT_DONE

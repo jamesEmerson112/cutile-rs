@@ -1,0 +1,1 @@
+cutile::entry(print_ir = true)]\0A    fn hello_world_kernel() {\0A        let pid0 = program_id(0);\0A        let pid1 = program_id(1);\0A        let pid2 = program_id(2);\0A        let n0 = num_programs(0);\0A        let n1 = num_programs(1);\0A       

@@ -1,0 +1,95 @@
+cuobjdump -sass /root/hello_world.cubin, pod 8de3dwrfg299ot, 2026-09-18 06:18 UTC
+Mnemonics only; the 64-bit instruction encodings that cuobjdump prints after each
+line are omitted. The full listing was 537 lines for 264 instructions; the bare
+cubin was 20,752 bytes. Retyped from the terminal log: the pod was stopped before
+the file itself was copied.
+
+	code for sm_120a
+	.target	sm_120a
+
+		Function : hello_world_kernel_entry
+	.headerflags	@"EF_CUDA_ACCELERATORS EF_CUDA_SM120 EF_CUDA_VIRTUAL_SM(EF_CUDA_SM120)"
+        /*0000*/                   LDC R1, c[0x0][0x37c] ;
+        /*0010*/                   S2R R18, SR_TID.X ;
+        /*0020*/                   S2UR UR5, SR_CgaCtaId ;
+        /*0030*/                   LDCU UR6, c[0x0][0x2f8] ;
+        /*0040*/                   IADD R1, R1, -0x38 ;
+        /*0050*/                   HFMA2 R3, -RZ, RZ, 0, 0 ;
+        /*0060*/                   BSSY.RECONVERGENT B0, 0x2c0 ;
+        /*0070*/                   LDCU UR7, c[0x0][0x2fc] ;
+        /*0080*/                   MOV R2, R1 ;
+        /*0090*/                   UMOV UR4, 0x400 ;
+        /*00a0*/                   LDCU.64 UR36, c[0x0][0x358] ;
+        /*00b0*/                   IADD.64 R16, R2, UR6 ;
+        /*00c0*/                   ULEA UR4, UR5, UR4, 0x18 ;
+        /*00d0*/                   ISETP.NE.U32.AND P1, PT, R18, RZ, PT ;
+        /*00e0*/                   MOV R5, UR4 ;
+        /*00f0*/                   BSSY.RECONVERGENT B1, 0x240 ;
+        /*0100*/               @P1 BRA 0x220 ;
+        /*0110*/                   LDC.64 R2, c[0x4][0x10] ;
+        /*0120*/                   HFMA2 R7, -RZ, RZ, 0, 5.9604644775390625e-08 ;
+        /*0130*/              @!PT LDS RZ, [RZ] ;
+        /*0140*/              @!PT LDS RZ, [RZ] ;
+        /*0150*/              @!PT LDS RZ, [RZ] ;
+        /*0160*/              @!PT LDS RZ, [RZ] ;
+        /*0170*/                   MEMBAR.ALL.CTA ;
+        /*0180*/                   MEMBAR.ALL.GPU ;
+        /*0190*/                   ERRBAR;
+        /*01a0*/                   CGAERRBAR ;
+        /*01b0*/                   ATOMG.E.EXCH.STRONG.GPU PT, R2, desc[UR36][R2.64], R7 ;
+        /*01c0*/                   CCTL.IVALL ;
+        /*01d0*/                   S2UR UR5, SR_CgaCtaId ;
+        /*01e0*/                   UMOV UR4, 0x400 ;
+        /*01f0*/                   ULEA UR4, UR5, UR4, 0x18 ;
+        /*0200*/                   MOV R5, UR4 ;
+        /*0210*/                   STS [R5], R2 ;
+        /*0220*/                   NOP ;
+        /*0230*/                   BSYNC.RECONVERGENT B1 ;
+        /*0240*/                   NOP ;
+        /*0250*/                   LDS R0, [R5] ;
+        /*0260*/                   LOP3.LUT P0, RZ, R0, 0x1, RZ, 0xc0, !PT ;
+        /*0270*/                   NOP ;
+        /*0280*/                   NOP ;
+        /*0290*/               @P0 BRA 0xf0 ;
+        /*02a0*/                   NOP ;
+        /*02b0*/                   BSYNC.RECONVERGENT B0 ;
+        /*02c0*/                   S2UR UR4, SR_CTAID.X ;
+        /*02d0*/                   RPCMOV.32 Rpc.LO, R2 ;
+        /*02e0*/                   CS2R.32 R2, SR_CgaSize ;
+        /*02f0*/                   IMAD R2, R2, -0xa0, RZ ;
+        /*0300*/                   R2UR UR5, R2 ;
+        /*0310*/                   RPCMOV.32 R2, Rpc.LO ;
+        /*0320*/                   LDCU UR5, c[0x0][UR5+0x2b0] ;
+        /*0330*/                   BSSY.RECONVERGENT B6, 0xc80 ;
+        /*0340*/                   RPCMOV.32 Rpc.LO, R2 ;
+        /*0350*/                   CS2R.32 R2, SR_CgaSize ;
+        /*0360*/                   IMAD R2, R2, -0xa0, RZ ;
+        /*0370*/                   R2UR UR7, R2 ;
+        /*0380*/                   RPCMOV.32 R2, Rpc.LO ;
+        /*0390*/                   LDCU UR7, c[0x0][UR7+0x2a0] ;
+        /*03a0*/                   ELECT P0, URZ, PT ;
+        /*03b0*/                   UI2FP.F32.U32 UR6, UR4 ;
+        /*03c0*/                   UFMUL UR5, UR5, UR6 ;
+        /*03d0*/                   UF2I.U32.TRUNC.NTZ UR5, UR5 ;
+        /*03e0*/                   UIADD3 UR5, UPT, UPT, -UR5, URZ, URZ ;
+        /*03f0*/                   UIMAD UR7, UR7, UR5, UR4 ;
+        /*0400*/                   ISETP.NE.U32.OR P0, PT, RZ, UR7, !P0 ;
+        /*0410*/               @P0 BRA 0xc60 ;
+        /*0420*/                   LDCU.64 UR4, c[0x4][0x38] ;
+        ..
+
+grep -n "CTAID\|NCTAID" hello_world.sass   (listing line : instruction)
+95:        /*02c0*/                   S2UR UR4, SR_CTAID.X ;
+157:       /*04b0*/                   S2UR UR4, SR_CTAID.X ;
+205:       /*0630*/                   S2UR UR4, SR_CTAID.Y ;
+253:       /*07b0*/                   S2UR UR4, SR_CTAID.Z ;
+
+grep -n "CALL" hello_world.sass   (calls into device-side library code)
+155:       /*04a0*/                   CALL.ABS.NOINC R2 ;
+187:       /*05a0*/                   CALL.ABS.NOINC R2 ;
+203:       /*0620*/                   CALL.ABS.NOINC R2 ;
+235:       /*0720*/                   CALL.ABS.NOINC R2 ;
+251:       /*07a0*/                   CALL.ABS.NOINC R2 ;
+283:       /*08a0*/                   CALL.ABS.NOINC R2 ;
+299:       /*0920*/                   CALL.ABS.NOINC R2 ;
+317:       /*09b0*/                   CALL.ABS.NOINC R2 ;

@@ -1,0 +1,35 @@
+collect-sass.sh on pod 8de3dwrfg299ot (RTX PRO 4000 Blackwell, sm_120), 2026-09-18 06:18 UTC
+hello_world.rs temporarily had this as the first line of main, then was restored:
+    cutile::jit_cache::enable_default().expect("enable jit cache");
+
+===== run 1 (disk cache miss) =====
+[cutile::jit] hello_world_module::hello_world_kernel → JIT compiling...
+[cutile::jit] hello_world_module::hello_world_kernel → JIT compiled in 302.8ms
+CUTILE_JIT_TIMING module=hello_world_module function=hello_world_kernel key=f58cc13741e89a85 stage1_ms=77.452 stage2_ms=216.005 stage2_source=tileiras stage3_ms=9.354 checks_discharged=0 checks_hoisted=0 checks_in_place=0 generics=
+
+===== run 2 (disk cache hit, a new process) =====
+[cutile::jit] hello_world_module::hello_world_kernel → JIT compiling...
+[cutile::jit] hello_world_module::hello_world_kernel → JIT compiled in 105.2ms
+CUTILE_JIT_TIMING module=hello_world_module function=hello_world_kernel key=f58cc13741e89a85 stage1_ms=92.528 stage2_ms=3.474 stage2_source=disk stage3_ms=9.145 checks_discharged=0 checks_hoisted=0 checks_in_place=0 generics=
+Hello, I am program <0, 1, 0> in a kernel with <2, 2, 1> programs.
+Hello, I am program <1, 1, 0> in a kernel with <2, 2, 1> programs.
+Hello, I am program <0, 0, 0> in a kernel with <2, 2, 1> programs.
+Hello, I am program <1, 0, 0> in a kernel with <2, 2, 1> programs.
+
+Reading the two timing lines:
+  stage1 = source text -> Tile IR -> bytecode   (runs on both, the hash of the bytecode is the cache key)
+  stage2 = bytecode -> cubin                    (216 ms via tileiras, 3.5 ms via the disk entry)
+  stage3 = load the cubin into the driver       (about 9 ms either way)
+
+===== the cache entry =====
+/root/.cache/cutile/kernels/33/33356d0c4d82b3a3ad3bbc97949187f7d8e1638e07fc403288598f92fc715863.cubin   21064 bytes
+ELF magic found at byte offset 312: the entry is a header (magic, format version,
+SHA-256 of the payload, GPU name, tileiras fingerprint) followed by the cubin.
+bare cubin after the header: 20752 bytes
+
+===== cuobjdump -elf, sections named after the kernel =====
+.text.hello_world_kernel_entry          PROGBITS   0x1080 bytes   (the SASS)
+.nv.shared.hello_world_kernel_entry     NOBITS     0x414 bytes    (shared memory reservation)
+.nv.constant0.hello_world_kernel_entry  PROGBITS   0x380 bytes    (constant bank 0: launch parameters)
+.nv.info.hello_world_kernel_entry       CUDA_INFO
+.nv.capmerc.text.hello_world_kernel_entry  CUDA_CAPMERC

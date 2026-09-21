@@ -1,0 +1,920 @@
+<title>Tiles, Grid, Threads</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Serif:wght@500;600&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<style>
+  :root {
+    --paper: #f5f7f3;
+    --grid: #e2e7de;
+    --surface: #ffffff;
+    --ink: #1b221f;
+    --ink-2: #4d5752;
+    --rule: #ccd4c9;
+    --mark: #fff0b3;
+    --build: #3a5a8c;
+    --build-soft: #e6ecf6;
+    --build-ink: #2a446e;
+    --run: #3d7a1f;
+    --run-soft: #e5f1da;
+    --run-ink: #2c5b13;
+    --on-run: #ffffff;
+    --term-bg: #1a201e;
+    --term-ink: #d8e6d2;
+    --serif: "IBM Plex Serif", Georgia, "Times New Roman", serif;
+    --sans: "IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+    --mono: "IBM Plex Mono", Consolas, "Courier New", monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --paper: #121716;
+      --grid: #1c2422;
+      --surface: #1a211f;
+      --ink: #e3e9e3;
+      --ink-2: #a4aea7;
+      --rule: #2e3835;
+      --mark: #4a4320;
+      --build: #8fb1e6;
+      --build-soft: #1c2a3d;
+      --build-ink: #bdd1f1;
+      --run: #8fd14f;
+      --run-soft: #1e3016;
+      --run-ink: #b8e88d;
+      --on-run: #0c100f;
+      --term-bg: #0c100f;
+      --term-ink: #cfe0c8;
+    }
+  }
+  :root[data-theme="dark"] {
+    --paper: #121716;
+    --grid: #1c2422;
+    --surface: #1a211f;
+    --ink: #e3e9e3;
+    --ink-2: #a4aea7;
+    --rule: #2e3835;
+    --mark: #4a4320;
+    --build: #8fb1e6;
+    --build-soft: #1c2a3d;
+    --build-ink: #bdd1f1;
+    --run: #8fd14f;
+    --run-soft: #1e3016;
+    --run-ink: #b8e88d;
+    --on-run: #0c100f;
+    --term-bg: #0c100f;
+    --term-ink: #cfe0c8;
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: var(--sans);
+    font-size: 17px;
+    line-height: 1.55;
+    color: var(--ink);
+    background-color: var(--paper);
+    background-image:
+      linear-gradient(var(--grid) 1px, transparent 1px),
+      linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+    background-size: 32px 32px;
+  }
+  .page { max-width: 1040px; margin: 0 auto; padding: 40px 24px 80px; }
+  .prose { max-width: 68ch; }
+  h1, h2, h3 { font-family: var(--serif); font-weight: 600; text-wrap: balance; margin: 0; }
+  h1 { font-size: 2.4rem; line-height: 1.1; }
+  h2 { font-size: 1.5rem; margin-top: 60px; margin-bottom: 12px; padding-top: 8px; }
+  h3 { font-size: 1.1rem; margin-top: 28px; margin-bottom: 8px; }
+  p { margin: 0 0 14px; }
+  code { font-family: var(--mono); font-size: 0.92em; background: var(--surface); border: 1px solid var(--rule); padding: 0 4px; border-radius: 3px; }
+  pre code { background: none; border: 0; padding: 0; font-size: inherit; }
+  a { color: var(--build-ink); }
+  .eyebrow { font-family: var(--mono); font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--ink-2); margin-bottom: 10px; }
+  header .prose p { font-size: 1.05rem; color: var(--ink-2); margin-top: 14px; }
+  nav.toc { display: flex; flex-wrap: wrap; gap: 6px 18px; margin: 18px 0 0; font-size: 0.9rem; }
+  nav.toc a { text-decoration: none; border-bottom: 1px solid var(--rule); }
+  nav.toc a:hover { border-color: var(--build); }
+  .legend { display: flex; flex-wrap: wrap; gap: 8px 20px; margin: 18px 0 0; font-size: 0.9rem; color: var(--ink-2); }
+  .legend span::before { content: ""; display: inline-block; width: 12px; height: 12px; border-radius: 2px; margin-right: 7px; vertical-align: -1px; }
+  .legend .lb::before { background: var(--build); }
+  .legend .lr::before { background: var(--run); }
+  .legend .lh::before { border: 2px solid var(--ink-2); width: 8px; height: 8px; }
+  .ck { font-family: var(--mono); font-weight: 600; font-size: 0.7rem; letter-spacing: 0.06em; padding: 0 5px; border-radius: 3px; border: 1px solid var(--rule); color: var(--ink-2); margin-right: 4px; vertical-align: 1px; }
+  .tag { font-family: var(--mono); font-weight: 600; font-size: 0.66rem; text-transform: uppercase; letter-spacing: 0.06em; padding: 1px 6px; border-radius: 3px; }
+  .tag.b { background: var(--build-soft); color: var(--build-ink); }
+  .tag.g { background: var(--run-soft); color: var(--run-ink); }
+  .tag.h { border: 1px solid var(--rule); color: var(--ink-2); }
+
+  pre.ex { background: var(--surface); border: 1px solid var(--rule); border-radius: 4px; padding: 10px 12px; font-family: var(--mono); font-size: 12.5px; line-height: 1.55; overflow-x: auto; margin: 10px 0 14px; }
+  pre.cmd, .term { margin: 8px 0 0; background: var(--term-bg); color: var(--term-ink); font-family: var(--mono); font-size: 12.5px; line-height: 1.6; padding: 12px 14px; border-radius: 4px; overflow-x: auto; white-space: pre; }
+  .term .err { color: var(--mark); }
+  .term .dim { opacity: 0.55; }
+
+  table { border-collapse: collapse; width: 100%; font-size: 0.93rem; margin-top: 12px; }
+  .tablewrap { overflow-x: auto; }
+  th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--rule); vertical-align: top; }
+  th { font-family: var(--mono); font-weight: 600; font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--ink-2); }
+  td.b { color: var(--build-ink); font-weight: 500; }
+  td.g { color: var(--run-ink); font-weight: 500; }
+  td.c { color: var(--ink-2); }
+  td.src { font-family: var(--mono); font-size: 0.8rem; color: var(--ink-2); white-space: nowrap; }
+
+  .aside { border: 1px solid var(--rule); background: var(--surface); border-radius: 4px; padding: 14px 16px; margin-top: 18px; font-size: 0.95rem; }
+  .aside h3 { margin-top: 0; }
+  .aside ul { margin: 6px 0 0; padding-left: 20px; }
+  .aside li { margin-bottom: 4px; }
+  .aside p:last-child { margin-bottom: 0; }
+  .raw ul { list-style: none; padding: 0; margin: 8px 0 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 6px 20px; }
+  .raw li { font-size: 0.9rem; }
+  .raw a { font-family: var(--mono); font-size: 0.85rem; }
+
+  /* Explorer */
+  .controls { display: flex; flex-wrap: wrap; gap: 10px 16px; align-items: end; margin: 14px 0 10px; font-size: 0.9rem; }
+  .controls label { display: flex; flex-direction: column; gap: 3px; font-family: var(--mono); font-size: 0.78rem; color: var(--ink-2); }
+  .controls label.chk { flex-direction: row; align-items: center; gap: 6px; font-family: var(--sans); font-size: 0.88rem; color: var(--ink); }
+  .controls .group { display: flex; gap: 8px; align-items: end; padding: 8px 10px; border: 1px solid var(--rule); border-radius: 4px; background: var(--surface); }
+  .controls .group > span { font-family: var(--mono); font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--ink-2); align-self: center; margin-right: 2px; }
+  select, input[type="number"] { font-family: var(--mono); font-size: 0.9rem; color: var(--ink); background: var(--surface); border: 1px solid var(--rule); border-radius: 4px; padding: 5px 8px; }
+  input[type="number"] { width: 78px; }
+  button { font-family: var(--mono); font-size: 0.85rem; cursor: pointer; border-radius: 4px; padding: 5px 10px; border: 1px solid var(--rule); background: var(--surface); color: var(--ink); }
+  button.primary { background: var(--run); border-color: var(--run); color: var(--on-run); font-weight: 600; }
+  button.cur { border-color: var(--run); box-shadow: inset 0 0 0 1px var(--run); }
+  button:focus-visible, select:focus-visible, input:focus-visible, [tabindex="0"]:focus-visible { outline: 2px solid var(--build); outline-offset: 2px; }
+  .presets { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; margin-bottom: 12px; font-size: 0.85rem; color: var(--ink-2); }
+  .presets button small { display: block; font-size: 0.68rem; color: var(--ink-2); font-weight: 400; }
+  .explorer { display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(280px, 1fr); gap: 20px; align-items: start; }
+  @media (max-width: 760px) { .explorer { grid-template-columns: 1fr; } }
+  .fig { background: var(--surface); border: 1px solid var(--rule); border-radius: 4px; padding: 12px; overflow-x: auto; }
+  .fig svg { display: block; height: auto; }
+  .fig .zrow { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; align-items: center; font-size: 0.8rem; color: var(--ink-2); }
+  .fig .zrow small { display: block; font-size: 0.66rem; color: var(--ink-2); }
+  .caption { font-size: 0.85rem; color: var(--ink-2); margin-top: 8px; }
+  .legend2 { display: flex; flex-wrap: wrap; gap: 6px 18px; font-size: 0.85rem; color: var(--ink-2); margin-top: 10px; }
+  .legend2 span::before { content: ""; display: inline-block; width: 14px; height: 14px; border-radius: 2px; margin-right: 6px; vertical-align: -2px; border: 1px solid var(--run); background: var(--run-soft); }
+  .legend2 .l-pad::before { border: 1px dashed var(--ink-2); background: repeating-linear-gradient(45deg, transparent 0 3px, var(--ink-2) 3px 4px); opacity: 0.7; }
+  .legend2 .l-nv::before { border: 0; background: var(--grid); }
+  .legend2 .l-sel::before { border: 2px solid var(--build); }
+  .detail { min-height: 15em; }
+  .detail .term { margin: 0; }
+  .errcard { background: var(--term-bg); color: var(--term-ink); font-family: var(--mono); font-size: 12.5px; line-height: 1.6; padding: 14px; border-radius: 4px; white-space: pre-wrap; }
+  .errcard b { color: var(--mark); font-weight: 600; }
+  /* SVG classes: every color is a token */
+  .t-full { fill: var(--run-soft); stroke: var(--run); stroke-width: 1; }
+  .t-cov { fill: var(--run-soft); stroke: var(--run); stroke-width: 1; }
+  .t-cell { fill: none; stroke: var(--ink-2); stroke-width: 1; stroke-dasharray: 4 3; }
+  .t-pad { fill: url(#hatch); stroke: none; }
+  .t-nv { fill: var(--grid); stroke: none; }
+  .t-sel { fill: none; stroke: var(--build); stroke-width: 3; }
+  .hatch-line { stroke: var(--ink-2); stroke-opacity: 0.35; stroke-width: 2; }
+  .t-edge { fill: none; stroke: var(--ink); stroke-width: 1.5; }
+  .tick { font-family: var(--mono); font-size: 11px; fill: var(--ink-2); }
+  .tlabel { font-family: var(--mono); font-size: 12px; fill: var(--run-ink); pointer-events: none; }
+  .tlabel.nv { fill: var(--ink-2); }
+  .axlabel { font-family: var(--mono); font-size: 11px; fill: var(--ink-2); }
+  .tile:hover .t-full, .tile:hover .t-cov { stroke-width: 2; }
+  .tile { cursor: pointer; outline: none; }
+  .tile:focus-visible .t-full, .tile:focus-visible .t-cov { stroke: var(--build); stroke-width: 2; }
+  .zbar { fill: var(--run-soft); stroke: var(--run); }
+  .zbar.cur { stroke-width: 2.5; stroke: var(--build); }
+  @media (prefers-reduced-motion: no-preference) { .t-full, .t-cov { transition: stroke-width 120ms; } }
+
+  /* Hardware stack */
+  .stack { background: var(--surface); border: 1px solid var(--rule); border-radius: 4px; padding: 12px; overflow-x: auto; margin-top: 14px; }
+  .stack svg { display: block; min-width: 760px; width: 100%; height: auto; }
+  .band-you { fill: var(--run-soft); stroke: var(--run); }
+  .band-hid { fill: var(--paper); stroke: var(--ink-2); stroke-dasharray: 4 3; }
+  .band-sm { fill: var(--grid); stroke: none; }
+  .st-name { font-family: var(--mono); font-size: 12.5px; font-weight: 600; fill: var(--ink); }
+  .st-sub { font-family: var(--sans); font-size: 11.5px; fill: var(--ink-2); }
+  .st-c { font-family: var(--sans); font-size: 12px; fill: var(--ink); }
+  .st-reg { font-family: var(--mono); font-size: 11.5px; fill: var(--build-ink); }
+  .st-head { font-family: var(--mono); font-size: 10.5px; letter-spacing: 0.06em; fill: var(--ink-2); }
+  .st-rule { stroke: var(--ink); stroke-width: 2.5; }
+  .st-you { font-family: var(--mono); font-size: 11px; fill: var(--run-ink); font-weight: 600; }
+  .st-them { font-family: var(--mono); font-size: 11px; fill: var(--ink-2); font-weight: 600; }
+
+  .two { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; align-items: start; }
+  @media (max-width: 760px) { .two { grid-template-columns: 1fr; } }
+  .quote { border-left: 3px solid var(--rule); padding: 6px 12px; margin: 0 0 10px; font-size: 0.93rem; }
+  .quote .who { display: block; font-family: var(--mono); font-size: 0.75rem; color: var(--ink-2); margin-top: 4px; }
+
+  .gloss { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 14px 28px; margin: 12px 0 0; }
+  .gloss dt { font-family: var(--mono); font-weight: 600; font-size: 0.92rem; display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+  .gloss dd { margin: 4px 0 0; font-size: 0.93rem; line-height: 1.45; color: var(--ink); }
+  .gloss dd .cc { display: block; margin-top: 3px; color: var(--ink-2); }
+  footer { margin-top: 56px; font-size: 0.85rem; color: var(--ink-2); border-top: 1px solid var(--rule); padding-top: 14px; max-width: 72ch; }
+</style>
+
+<div class="page">
+  <header>
+    <div class="eyebrow">cutile-rs · learning note · 2026-09-18</div>
+    <h1>Tiles, Grid, Threads</h1>
+    <div class="prose">
+      <p>Four different things get called "the shape" around a cuTile kernel, and they are not the same shape. The data is a tensor, of any rank. The unit of work is a tile, ranks 0 to 6. The fleet is the grid, exactly three axes. Underneath sit thread blocks, warps, and threads, which cuTile hides from you on purpose. This note keeps the four apart, on the GPU side and on the host side, with a figure you can poke at. It assumes you know CUDA basics, so it starts from the CUDA kernel you already know and gives every term its CUDA cousin. Every quoted line comes from the repo's source or its book, cited by file and line; the GPU pod is stopped, so nothing here needed a new run.</p>
+    </div>
+    <nav class="toc">
+      <a href="#cuda">Coming from CUDA</a>
+      <a href="#five">Three axes, and why</a>
+      <a href="#four">Four things called "the shape"</a>
+      <a href="#explorer">The tile explorer</a>
+      <a href="#stack">What is underneath</a>
+      <a href="#robots">The warehouse, extended</a>
+      <a href="#host">Threads on the host</a>
+      <a href="#glossary">Glossary</a>
+    </nav>
+    <div class="legend">
+      <span class="lb">build time, on the CPU, by rustc</span>
+      <span class="lr">run time, on or for the GPU</span>
+      <span class="lh">run time, on the CPU, by the host program</span>
+    </div>
+  </header>
+
+  <h2 id="cuda">Coming from CUDA</h2>
+  <div class="prose">
+    <p>The book puts the two programming models side by side. Same job, vector addition, written the way you know it and the way cuTile wants it (<code>cutile-book/guide/useful-mental-models.md:9-31</code>, verbatim).</p>
+  </div>
+  <div class="two">
+    <div>
+      <div class="eyebrow">CUDA C++: one thread per element</div>
+<pre class="ex">__global__ void add(float* a, float* b, float* c, int n) {
+    int i = blockIdx.x * blockDim.x + threadIdx.x;
+    if (i &lt; n) {
+        c[i] = a[i] + b[i];
+    }
+}</pre>
+    </div>
+    <div>
+      <div class="eyebrow">cuTile: one program per tile</div>
+<pre class="ex">#[cutile::entry()]
+fn add&lt;const S: [i32; 2]&gt;(
+    c: &amp;mut Tensor&lt;f32, S&gt;,
+    a: &amp;Tensor&lt;f32, { [-1, -1] }&gt;,
+    b: &amp;Tensor&lt;f32, { [-1, -1] }&gt;,
+) {
+    let tile_a = a.load_like(c);
+    let tile_b = b.load_like(c);
+    c.store(tile_a + tile_b);
+}</pre>
+    </div>
+  </div>
+  <div class="prose" style="margin-top:14px">
+    <p>Three things from the left side are gone on the right. The index arithmetic is gone, because the tile is the index: each program gets the sub-tensor it owns and never computes an offset. The guard <code>if (i &lt; n)</code> is gone, because the partial edge tile is handled by padding on load and clipping on store. And <code>blockDim</code> and <code>threadIdx</code> are gone for good, because the host launches every program with a block size of one and the compiler decides how many real threads run it. The book's own summary: "The kernel describes what happens to one tile-shaped region. The compiler and runtime map that work onto CUDA execution units." (<code>useful-mental-models.md:33</code>).</p>
+    <p>What stays is the shape of everything around the kernel: a grid with three axes, a block index to read, streams to queue work on, a toolchain that ends in a cubin. The table is the dictionary; the rest of the note is the fine print.</p>
+  </div>
+  <div class="tablewrap">
+  <table>
+    <thead><tr><th>in CUDA</th><th>in cuTile</th><th>where</th></tr></thead>
+    <tbody>
+      <tr><td><code>__global__ void k(..)</code></td><td class="g"><code>#[cutile::entry] fn k(..)</code> inside a <code>#[cutile::module]</code></td><td class="src">first note</td></tr>
+      <tr><td>a thread block</td><td class="g">a tile program; the compiler may use one or more blocks, clusters, or warps for it</td><td class="src">glossary.md:37-39</td></tr>
+      <tr><td><code>blockIdx.x</code>, <code>gridDim.x</code></td><td class="g"><code>program_id(0)</code>, <code>num_programs(0)</code></td><td class="src">_core.rs:1598-1656</td></tr>
+      <tr><td><code>k&lt;&lt;&lt;grid, block&gt;&gt;&gt;(args)</code></td><td class="b"><code>k(args).grid((x, y, z))</code>, or nothing: the grid is inferred from the output partition</td><td class="src">tile_kernel.rs:1352, tensor.rs:798</td></tr>
+      <tr><td><code>blockDim</code>, <code>threadIdx</code></td><td class="g">none; the host asks for <code>block_dim: (1, 1, 1)</code> and the compiler decides the threads</td><td class="src">kernel_launcher_generator.rs:1057</td></tr>
+      <tr><td><code>i = blockIdx.x * blockDim.x + threadIdx.x; if (i &lt; n)</code></td><td class="g">the tile is the index; the edge is handled by padding and bounds checks</td><td class="src">lib.rs:143-145</td></tr>
+      <tr><td><code>__shared__</code>, <code>__syncthreads()</code></td><td class="g">none; staging through shared memory is compiler-managed</td><td class="src">glossary.md:109; useful-mental-models.md:117</td></tr>
+      <tr><td><code>__shfl_sync</code> and other warp intrinsics</td><td class="g">none; warps surface only as the <code>num_worker_warps_per_cta</code> hint</td><td class="src">performance.md:133</td></tr>
+      <tr><td><code>wmma</code>, Tensor Core placement</td><td class="g"><code>mma</code> / <code>mmaf_scaled</code>, placement compiler-managed</td><td class="src">useful-mental-models.md:118</td></tr>
+      <tr><td><code>cudaStream_t</code>, <code>cudaStreamSynchronize</code></td><td class="b">a stream, <code>.sync_on(&amp;stream)</code>; four streams in rotation by default</td><td class="src">glossary.md:160-162</td></tr>
+      <tr><td><code>cudaSetDevice</code>, per thread</td><td class="b"><code>set_default_device</code>, per thread</td><td class="src">device-operations.md:370</td></tr>
+      <tr><td><code>nvcc</code> → PTX → <code>ptxas</code> → cubin, before the program runs</td><td class="b">rustc for the host; then at first launch the JIT: source → Tile IR → bytecode → <code>tileiras</code> → cubin</td><td class="src">first note</td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <h2 id="five">Three axes, and why</h2>
+  <div class="prose">
+    <p>The five-axis experiment, <code>.grid((2, 2, 1, 1, 1))</code> with <code>program_id(3)</code> and <code>program_id(4)</code>, fails in three different places, and each place is a different layer saying the same thing.</p>
+    <p><span class="ck">rustc</span>The launcher method takes a three-tuple and nothing else. That is a type, checked before any GPU exists:</p>
+  </div>
+<pre class="ex">// cutile/src/tile_kernel.rs:1352, the TileKernel trait
+fn grid(self, grid: (u32, u32, u32)) -&gt; Self;</pre>
+  <div class="prose">
+    <p><span class="ck">host</span>When the grid is inferred from a partition instead, the host arithmetic has a rank arm for 1, 2, and 3 and one message for everything else: <code>Mutable tensor must be at most rank 3.</code> (the last arm of <code>partition_launch_grid</code>, <code>cutile/src/tensor.rs:839</code>).</p>
+    <p>Read that message slowly, because both words carry weight. "Mutable" means the <code>&amp;mut Tensor</code> parameter, the output you write to, which is the only tensor that has to be partitioned on the host. "Rank" is the number of axes. The output is capped at three axes because the grid is derived from it one axis at a time, tensor axis <em>k</em> to grid axis <em>k</em>, so that every program owns a disjoint tile; a fourth tensor axis would need a fourth grid axis, and <code>dim3</code> has none. Read-only inputs are not under this cap: they are passed whole and cut into tiles inside the kernel, so they never touch the grid. A 4-D output gets reshaped to 3-D on the host first, folding two axes into one, which is the same trick you would use in CUDA to fit a 4-D problem into <code>blockIdx</code>.</p>
+    <p><span class="ck">GPU</span>Inside the kernel, <code>program_id(axis)</code> is plain Rust that picks one component of a three-tuple, and its doc comment ends with "Axes above 2 fail a device assertion" (<code>cutile/src/_core.rs:1610-1633</code>). The first note's Tile IR dump shows that assertion as <code>assert .., "program_id: axis must be 0, 1, or 2"</code>.</p>
+    <p><span class="ck">silicon</span>Under all three, the machine code reads exactly three block-index registers, <code>SR_CTAID.X</code>, <code>.Y</code>, and <code>.Z</code>, and no fourth one exists. The SASS excerpt from the first note has all three reads.</p>
+    <p>So the three is a property of the grid, the fleet of programs. It is not a property of tensors. A tensor has whatever rank you gave it, and the table below is the honest list of which limit lives where.</p>
+  </div>
+  <div class="tablewrap">
+  <table>
+    <thead><tr><th>thing</th><th>how many axes</th><th>where the cap lives</th></tr></thead>
+    <tbody>
+      <tr><td><code>Tile&lt;E, const D: [i32; N]&gt;</code></td><td class="g">0 through 6</td><td class="src">#[cuda_tile::variadic_struct(N = 6)], _core.rs:625-630</td></tr>
+      <tr><td>device-side <code>Tensor&lt;E, D&gt;</code></td><td class="g">0 through 6, <code>-1</code> marks a dynamic dim</td><td class="src">_core.rs:755-762</td></tr>
+      <tr><td><code>load_tile_mut</code>, <code>store_tile</code>, <code>load_like</code></td><td class="g">1 through 3 only</td><td class="src">three impls each, _core.rs:3614-3812</td></tr>
+      <tr><td>host partition and the inferred grid</td><td class="b">1 through 3</td><td class="src">the match on shape.len(), tensor.rs:835-840</td></tr>
+      <tr><td>the launch grid</td><td class="b">exactly 3</td><td class="src">the tuple type, tile_kernel.rs:1352</td></tr>
+      <tr><td><code>program_id(axis)</code></td><td class="g">axis 0, 1, or 2</td><td class="src">device assert, _core.rs:1623-1633</td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <h2 id="four">Four things called "the shape"</h2>
+  <div class="prose">
+    <p>The grid is not a property of the tensor. It is a property of the pairing of a tensor with a tile shape, which is why <code>.partition([32, 64])</code> is the call that creates it, and why a tensor on its own tells you nothing about how many programs will run. Each row below is one of the four things, in the book's own words.</p>
+  </div>
+  <div class="tablewrap">
+  <table>
+    <thead><tr><th>thing</th><th>what it is</th><th>rank</th><th>in CUDA</th></tr></thead>
+    <tbody>
+      <tr><td><b>tensor</b></td><td>"A multi-dimensional array stored in GPU global memory (HBM) ... Tensors do not support direct arithmetic; data must first be loaded into tiles." <span class="src">glossary.md:11-13</span></td><td>any</td><td class="c">a <code>float*</code> plus the shape you carry beside it</td></tr>
+      <tr><td><b>tile</b></td><td>"A multi-dimensional array fragment that lives in GPU registers during kernel execution. Tiles are the fundamental unit of computation ... compile-time static shapes." <span class="src">glossary.md:7-9</span></td><td>0 to 6</td><td class="c">no cousin; the sub-array a block indexes by hand</td></tr>
+      <tr><td><b>grid</b></td><td>"grid[i] = ceil(tensor_shape[i] / partition_shape[i]) ... mapped to a 3D tuple (x, y, z), with trailing dimensions set to 1 for tensors of rank less than 3." <span class="src">glossary.md:29</span></td><td>3</td><td class="c"><code>dim3 grid</code>, read back as <code>gridDim</code></td></tr>
+      <tr><td><b>thread block</b></td><td>The compiler "maps each [tile block] to one or more underlying CUDA execution units (thread blocks, clusters, or warps) depending on the target architecture." <span class="src">glossary.md:37-39</span></td><td>hidden</td><td class="c">the thing <code>blockIdx</code> indexes; closest cousin of a program</td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <h2 id="explorer">The tile explorer</h2>
+  <div class="prose">
+    <p>Type a tensor shape and a tile shape. The figure draws the tiles over the tensor, works out the launch grid the way <code>partition_launch_grid</code> does, and marks the tiles that hang past the edge. Click a tile to see which program owns it. Turn on the hand-set grid to see what the launcher says when your grid disagrees with the inferred one; every message is the real string from <code>tile_kernel.rs</code>, with the <code>error: </code> prefix that the error type's Display adds.</p>
+    <p>Axis 0 runs left to right and axis 1 top to bottom, because tensor dimension 0 maps to grid x (<code>useful-mental-models.md:58</code>). That is the transpose of how matrices are usually drawn; the numbers are what matter.</p>
+  </div>
+  <div class="presets" id="presets">
+    <span>presets, each named after the test it comes from:</span>
+  </div>
+  <div class="controls" id="controls">
+    <label>rank <select id="rank"><option>1</option><option selected>2</option><option>3</option><option value="4">4 (what happens?)</option></select></label>
+    <div class="group"><span>shape</span>
+      <label>shape[0] <input type="number" id="s0" min="0" max="512" value="100"></label>
+      <label>shape[1] <input type="number" id="s1" min="0" max="512" value="256"></label>
+      <label>shape[2] <input type="number" id="s2" min="0" max="512" value="8"></label>
+    </div>
+    <div class="group"><span>tile size</span>
+      <label>partition[0] <input type="number" id="t0" min="0" max="256" value="32"></label>
+      <label>partition[1] <input type="number" id="t1" min="0" max="256" value="64"></label>
+      <label>partition[2] <input type="number" id="t2" min="0" max="256" value="3"></label>
+    </div>
+    <label class="chk"><input type="checkbox" id="drop"> drop the last partition axis</label>
+    <label class="chk"><input type="checkbox" id="hand"> set the grid by hand</label>
+    <div class="group" id="handgroup" hidden><span>launch</span>
+      <label>x <input type="number" id="g0" min="0" max="512" value="0"></label>
+      <label>y <input type="number" id="g1" min="0" max="512" value="0"></label>
+      <label>z <input type="number" id="g2" min="0" max="512" value="0"></label>
+    </div>
+    <label class="chk"><input type="checkbox" id="prefix"> bind with <code>partition_prefix</code></label>
+  </div>
+  <div class="explorer">
+    <div>
+      <div class="fig" id="fig" tabindex="0" aria-label="tiles drawn over the tensor; use arrow keys to move the selection"></div>
+      <div class="legend2">
+        <span>elements that exist</span>
+        <span class="l-pad">lanes past the end: read as zero, dropped on store</span>
+        <span class="l-nv">a block the launch never visits</span>
+        <span class="l-sel">selected</span>
+      </div>
+      <div class="caption" id="figcap"></div>
+    </div>
+    <div>
+      <div class="term" id="arith"></div>
+      <div class="detail" id="detail" aria-live="polite" style="margin-top:12px"></div>
+      <div class="term" id="launchbox" style="margin-top:12px"></div>
+    </div>
+  </div>
+  <div class="two" style="margin-top:16px">
+    <div>
+      <div class="eyebrow">the Rust that does this</div>
+<pre class="ex">// cutile/src/tensor.rs:798-841, shortened
+fn partition_launch_grid(shape: &amp;[i32], partition_shape: &amp;[usize])
+    -&gt; Result&lt;(u32, u32, u32), Error&gt; {
+    if shape.iter().any(|&amp;d| d &lt;= 0) { /* "Shape dimensions must be positive, got {shape:?}." */ }
+    if partition_shape.len() != shape.len() { /* "Partition rank .. does not match tensor rank .." */ }
+    if partition_shape.contains(&amp;0) { /* "Partition dimensions must be positive, got .." */ }
+    let axis = |i: usize| -&gt; Result&lt;u32, Error&gt; {
+        let extent = shape[i] as u32;
+        let tile = u32::try_from(partition_shape[i])?;
+        Ok(extent.div_ceil(tile))
+    };
+    match shape.len() {
+        1 =&gt; Ok((axis(0)?, 1, 1)),
+        2 =&gt; Ok((axis(0)?, axis(1)?, 1)),
+        3 =&gt; Ok((axis(0)?, axis(1)?, axis(2)?)),
+        _ =&gt; tensor_error_result("Mutable tensor must be at most rank 3."),
+    }
+}</pre>
+    </div>
+    <div>
+      <div class="eyebrow">the host line that triggers it</div>
+<pre class="ex">// any &amp;mut Tensor argument arrives as a Partition
+let z = api::zeros::&lt;f32&gt;(&amp;[100, 256]).sync_on(&amp;stream)?.partition([32, 64]);
+// no .grid() call: the launcher infers (4, 4, 1) from z
+
+// the three cases the unit test pins down, cutile/src/tensor.rs:2436
+meta_f32(&amp;[256]).partition([64]).grid()            // (4, 1, 1)
+meta_f32(&amp;[100, 256]).partition([32, 64]).grid()   // (4, 4, 1), 100 / 32 rounds up
+meta_f32(&amp;[8, 8, 8]).partition([4, 8, 3]).grid()   // (2, 1, 3)</pre>
+    </div>
+  </div>
+  <div class="prose" style="margin-top:14px">
+    <p>Two guards against over-generalising. First, a grid axis is not a loop. In the GEMM example the output <code>z</code> is partitioned <code>[bm, bn]</code>, which gives a 2-D grid, and the reduction over K is a plain <code>for</code> loop inside each program over tiles of the inputs that the grid never sees (<code>cutile-examples/examples/gemm.rs:20-36, 52-56</code>). Second, hello_world has no <code>&amp;mut Tensor</code> at all, so there is nothing to infer from and it must call <code>.grid</code>; leave that out and the launcher says <code>error: Launch grid required.</code> (<code>tile_kernel.rs:1219</code>).</p>
+  </div>
+
+  <h2 id="stack">What is underneath</h2>
+  <div class="prose">
+    <p>The line across the middle of this figure is the whole point. Above it is what you write and what you can index. Below it is what the Tile IR compiler decides, and the book is careful to say it may decide differently per architecture: a tile block maps to "one or more underlying CUDA execution units (thread blocks, clusters, or warps)" (<code>glossary.md:37-39</code>). The three hidden layers are therefore drawn side by side, not stacked, because the source does not promise an ordering.</p>
+  </div>
+  <div class="stack">
+    <svg viewBox="0 0 760 420" role="img" aria-label="hardware stack: what you write above a rule, what the compiler decides below it">
+      <text x="16" y="18" class="st-head">CUTILE CALLS IT</text>
+      <text x="300" y="18" class="st-head">CUDA C CALLS IT</text>
+      <text x="540" y="18" class="st-head">VISIBLE IN SASS AS</text>
+
+      <rect x="10" y="28" width="740" height="40" rx="3" class="band-you"/>
+      <text x="16" y="45" class="st-name">your kernel body</text><text x="16" y="60" class="st-sub">the #[cutile::entry] function</text>
+      <text x="300" y="52" class="st-c">a __global__ function</text>
+      <text x="540" y="52" class="st-reg">the whole listing</text>
+
+      <rect x="10" y="76" width="740" height="40" rx="3" class="band-you"/>
+      <text x="16" y="93" class="st-name">the launch grid</text><text x="16" y="108" class="st-sub">three axes, from .grid or a partition</text>
+      <text x="300" y="100" class="st-c">gridDim, set from a dim3</text>
+      <text x="540" y="100" class="st-reg">constant bank, not a register</text>
+
+      <rect x="10" y="124" width="740" height="40" rx="3" class="band-you"/>
+      <text x="16" y="141" class="st-name">tile program = tile block = tile thread</text><text x="16" y="156" class="st-sub">one instance of the kernel, one logical thread</text>
+      <text x="300" y="148" class="st-c">a thread block (CTA), closest cousin</text>
+      <text x="540" y="148" class="st-reg">SR_CTAID.X  SR_CTAID.Y  SR_CTAID.Z</text>
+
+      <rect x="10" y="172" width="740" height="40" rx="3" class="band-you"/>
+      <text x="16" y="189" class="st-name">a tile</text><text x="16" y="204" class="st-sub">the data this program owns, in registers</text>
+      <text x="300" y="196" class="st-c">no cousin: the sub-array a block indexes by hand</text>
+      <text x="540" y="196" class="st-reg">none</text>
+
+      <line x1="10" y1="232" x2="750" y2="232" class="st-rule"/>
+      <text x="10" y="226" class="st-you">you write this, you index this</text>
+      <text x="10" y="248" class="st-them">the Tile IR compiler decides this, and may decide differently per architecture</text>
+
+      <rect x="10" y="258" width="240" height="88" rx="3" class="band-hid"/>
+      <text x="16" y="276" class="st-name">cluster</text><text x="16" y="291" class="st-sub">hidden; surfaces only as the</text><text x="16" y="305" class="st-sub">num_cta_in_cga hint</text>
+      <text x="16" y="322" class="st-c">CUDA C: thread block cluster</text>
+      <text x="16" y="338" class="st-reg">SR_CgaCtaId, SR_CgaSize</text>
+
+      <rect x="260" y="258" width="240" height="88" rx="3" class="band-hid"/>
+      <text x="266" y="276" class="st-name">warp</text><text x="266" y="291" class="st-sub">hidden; surfaces only as the</text><text x="266" y="305" class="st-sub">num_worker_warps_per_cta hint</text>
+      <text x="266" y="322" class="st-c">CUDA C: a warp, 32 threads in lockstep</text>
+      <text x="266" y="338" class="st-reg">none in this kernel</text>
+
+      <rect x="510" y="258" width="240" height="88" rx="3" class="band-hid"/>
+      <text x="516" y="276" class="st-name">thread</text><text x="516" y="291" class="st-sub">hidden entirely; no op in cutile/src</text><text x="516" y="305" class="st-sub">names a lane</text>
+      <text x="516" y="322" class="st-c">CUDA C: threadIdx</text>
+      <text x="516" y="338" class="st-reg">SR_TID.X</text>
+
+      <rect x="10" y="356" width="740" height="40" rx="3" class="band-sm"/>
+      <text x="16" y="373" class="st-name">streaming multiprocessor (SM)</text><text x="16" y="388" class="st-sub">several tile blocks can be resident on one SM at once</text>
+      <text x="300" y="380" class="st-c">an SM</text>
+      <text x="540" y="380" class="st-reg">none</text>
+    </svg>
+  </div>
+  <div class="prose" style="margin-top:14px">
+    <p>Evidence, all from files in this repo:</p>
+    <ul>
+      <li>The Tile IR for hello_world contains <code>get_tile_block_id</code> and <code>get_num_tile_blocks</code> and no operation that names a thread, a warp, a lane, or a barrier (<a href="2026-09-17-hello-world-excerpts/tile-ir-and-bytecode.txt">the dump</a>, lines 4 to 65).</li>
+      <li><code>cutile/src</code> exposes no warp or thread operation at all. A grep for <code>warp</code>, <code>threadIdx</code>, <code>shfl</code>, and <code>syncthreads</code> across it finds nothing.</li>
+      <li>The host always asks for a one-thread block: <code>block_dim: (1, 1, 1)</code> is a literal in the launcher generator (<code>cutile-macro/src/kernel_launcher_generator.rs:1057</code>), appears verbatim in the <a href="2026-09-17-hello-world-excerpts/generated-launcher.txt">dumped launcher</a>, and goes straight to <code>cuLaunchKernel</code> (<code>cuda-core/src/api.rs:56</code>). <code>TileKernel::get_launch_block</code> defaults to the same value (<code>tile_kernel.rs:1367</code>).</li>
+      <li>Threads still exist in the machine code. The kernel's second instruction is <code>S2R R18, SR_TID.X</code> and a predicate a few lines later branches on whether it is zero (<a href="2026-09-17-hello-world-excerpts/sass-excerpt.txt">the SASS excerpt</a>).</li>
+      <li>Warps and clusters appear in this project only as tuning knobs, never as operations: <code>occupancy</code>, <code>num_cta_in_cga</code>, and <code>num_worker_warps_per_cta</code> in the entry's optimization hints (<code>cutile-book/guide/performance.md:126-141</code>).</li>
+    </ul>
+  </div>
+  <div class="aside">
+    <h3>The book says both, at two levels</h3>
+    <div class="two">
+      <div class="quote">"a tile program has no visible internal threads; it loads tiles, computes on them, and stores results."<span class="who">the programming model: cutile-book/reference/glossary.md:35</span></div>
+      <div class="quote">"Tiles are register-resident and processed in parallel by all threads in a warp/block."<span class="who">the implementation: cutile-book/reference/dsl-api.md:190</span></div>
+    </div>
+    <p>Both are true. The first is what your code can see; the second is what the compiler does with it. Keep the levels apart and neither sentence contradicts the other.</p>
+  </div>
+  <div class="prose" style="margin-top:14px">
+    <p>One honest limit. A <code>SR_TID.X</code> read proves the concept of a thread exists in the generated code; it does not prove that more than one thread ran for that launch, because the surrounding pattern is the standard "only lane zero takes the lock" preamble that device-side printing emits regardless. Settling it would need a run on a pod, and the pod is stopped.</p>
+  </div>
+
+  <h2 id="robots">The warehouse, extended</h2>
+  <div class="prose">
+    <p>The first note had a dispatcher handing one instruction sheet to a fleet of robots, one per cell of a floor. That picture stretches to cover tiles, partitions, streams, and the host's reactor thread, and then it stops. The table is the stretch; the aside is where it stops.</p>
+  </div>
+  <div class="tablewrap">
+  <table>
+    <thead><tr><th>in the warehouse</th><th>in cuTile</th><th>in CUDA C</th></tr></thead>
+    <tbody>
+      <tr><td>one robot</td><td class="g">one tile program</td><td class="c">one thread block</td></tr>
+      <tr><td>its badge number</td><td class="g"><code>program_id(0..2)</code></td><td class="c"><code>blockIdx</code></td></tr>
+      <tr><td>the patch of floor it works</td><td class="g">its tile</td><td class="c">the sub-array the block indexes by hand</td></tr>
+      <tr><td>the whole floor</td><td class="g">the tensor</td><td class="c">the array in global memory</td></tr>
+      <tr><td>the chalk lines dividing the floor</td><td class="g"><code>.partition([32, 64])</code></td><td class="c">the tiling you write yourself</td></tr>
+      <tr><td>the roster, in a room with three directions</td><td class="g">the launch grid</td><td class="c"><code>gridDim</code>, set from a <code>dim3</code></td></tr>
+      <tr><td>the dispatcher</td><td class="b">the host program</td><td class="c">the host program</td></tr>
+      <tr><td>the shift queue jobs are posted to</td><td class="b">a stream</td><td class="c"><code>cudaStream_t</code></td></tr>
+      <tr><td>four queues worked in rotation</td><td class="b"><code>StreamPoolRoundRobin</code> over four streams</td><td class="c">four streams you rotate by hand</td></tr>
+      <tr><td>the dispatcher waiting at the door</td><td class="b"><code>.sync()</code> / <code>.sync_on(&amp;stream)</code></td><td class="c"><code>cudaStreamSynchronize</code></td></tr>
+      <tr><td>leaving a note and going back to work</td><td class="b"><code>.await</code></td><td class="c">a callback, or your own poll loop</td></tr>
+      <tr><td>the one clerk watching every mail slot</td><td class="b">the <code>cuda-async-reactor</code> thread</td><td class="c">a polling thread you write</td></tr>
+      <tr><td>a patch that hangs off the edge of the floor</td><td class="g">a partial edge tile</td><td class="c">the <code>if (i &lt; n)</code> guard</td></tr>
+      <tr><td>the strip past the wall</td><td class="g">padded lanes: zeros on load, dropped on store</td><td class="c">the elements the guard skips</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <div class="aside">
+    <h3>Where this picture stops</h3>
+    <p><b>There is no robot for the threads inside a program.</b> A robot is one worker. A tile program is not: underneath, the compiler may spread one tile across the 32 lanes of a warp, across several warps, or across the blocks of a cluster, and may choose differently per architecture (<code>glossary.md:37-39</code>). Do not reach for "the robot has 32 hands"; that implies a fixed number you could count and address, and nothing in <code>cutile/src</code> lets you name a lane. The robot's insides are not modelled, on purpose.</p>
+    <p><b>There is no queue at the door.</b> Relative order is unspecified and "kernels must not depend on one tile block running before another unless an explicit synchronization mechanism exists outside the kernel" (<code>useful-mental-models.md:46</code>). The first note recorded two different finishing orders from the same binary, minutes apart.</p>
+    <p><b>A robot is not guaranteed a body to itself.</b> Several tile programs can be resident on one SM at once when registers and shared memory allow (<code>glossary.md:57-59</code>). The warehouse has no cousin for two robots sharing a chassis.</p>
+    <p><b>The dispatcher is not one person.</b> Once <code>.await</code> is involved, the host has its own fleet: four streams, a reactor thread, and a per-thread lock. That is the next section, and it is the part the warehouse serves worst.</p>
+  </div>
+
+  <h2 id="host">The other fleet: threads on the host</h2>
+  <div class="prose">
+    <p>"Thread related" has a second half that lives entirely on the CPU. A stream is an in-order queue of GPU work; work on one stream runs in sequence, and separate streams may overlap (<code>glossary.md:160-162</code>). The default scheduling policy rotates over four streams, and a chain built with <code>.then()</code> stays on one stream so it always runs in order (<code>cuda-async/README.md:85-104</code>). None of that pins a stream to an OS thread. What is per-thread is the waiting, the lock, and the default device.</p>
+  </div>
+  <div class="tablewrap">
+  <table>
+    <thead><tr><th>what</th><th>which thread does it</th><th>source</th></tr></thead>
+    <tbody>
+      <tr><td>submitting work with <code>.sync()</code> or <code>.sync_on(&amp;stream)</code></td><td>your thread, then it blocks on <code>cuStreamSynchronize</code> until the stream drains</td><td class="src">cuda-async/README.md:107</td></tr>
+      <tr><td>submitting work with <code>.await</code></td><td>your thread submits on the first poll and does not block</td><td class="src">README.md:108</td></tr>
+      <tr><td>finding out that awaited work finished, path 1</td><td>your thread spins on <code>cuStreamQuery</code> for <code>CUDA_ASYNC_SPIN_BUDGET_US</code> microseconds, default 20</td><td class="src">README.md:111-116</td></tr>
+      <tr><td>path 2, the default after the spin</td><td>one process-wide <code>cuda-async-reactor</code> thread scans pinned-memory slots that the GPU wrote with <code>cuStreamWriteValue32</code>, and wakes your future; it parks when nothing is in flight</td><td class="src">README.md:117-122</td></tr>
+      <tr><td>path 3, the fallback</td><td>a driver thread runs a host callback queued with <code>cuLaunchHostFunc</code>; forced with <code>CUDA_ASYNC_HOST_SYNC=spin</code> or <code>block</code></td><td class="src">README.md:123-128</td></tr>
+      <tr><td>a <code>.then()</code> closure</td><td>your thread, under a per-thread execution lock: nesting <code>.sync()</code>, <code>.sync_on()</code>, or <code>.await</code> inside it returns a <code>DeviceError</code> instead of racing two streams; <code>then_unchecked</code> is the unsafe escape</td><td class="src">README.md:78-83, device-operations.md:368</td></tr>
+      <tr><td>which GPU a new <code>DeviceOp</code> lands on</td><td>thread-local; <code>set_default_device(id)</code> changes it for the current thread only, the one-thread-per-GPU pattern</td><td class="src">device-operations.md:370</td></tr>
+      <tr><td>the kernel itself</td><td>the GPU, as a grid of programs; no host thread runs it</td><td class="src">this note</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <div class="prose" style="margin-top:14px">
+    <p><span class="ck">C</span>In CUDA C every one of these is your job: <code>cudaStreamSynchronize</code> to block, <code>cudaStreamQuery</code> to spin, <code>cudaLaunchHostFunc</code> for a callback, and no lock at all, so submitting to a second stream from inside a callback is a race you find at 2 a.m. rather than a <code>DeviceError</code>. <code>cudaSetDevice</code> is also per-thread, which is the one place the two agree exactly.</p>
+  </div>
+
+  <h2 id="glossary">Glossary</h2>
+  <h3>GPU side</h3>
+  <dl class="gloss">
+    <div><dt>tile <span class="tag g">gpu</span></dt><dd>A multi-dimensional array fragment in registers during execution, the unit of computation; <code>Tile&lt;E, const D: [i32; N]&gt;</code> covers ranks 0 through 6. You never manage the registers or the shared memory behind it (glossary.md:7-9, 103-109).<span class="cc"><span class="ck">C</span>no direct cousin; the sub-array a block would index by hand, plus the <code>__shared__</code> staging you would write</span></dd></div>
+    <div><dt>tensor <span class="tag g">gpu</span></dt><dd>A multi-dimensional array in global memory, passed as a kernel argument; no direct arithmetic, data is loaded into tiles first. Host-side its shape is a plain list, so the rank is whatever you allocated (glossary.md:11-13, tensor.rs:745-752).<span class="cc"><span class="ck">C</span>a <code>float*</code> and the shape you carry beside it</span></dd></div>
+    <div><dt>partition <span class="tag g">gpu</span></dt><dd>Dividing a tensor into equally sized sub-regions, one per tile block. Host-side for mutable outputs, where it also fixes the grid; device-side for shared inputs, where the same tensor can be cut different ways (glossary.md:15-31).<span class="cc"><span class="ck">C</span>the tiling loop you write by hand</span></dd></div>
+    <div><dt>tile program, tile block, tile thread <span class="tag g">gpu</span></dt><dd>Three names for one unit: one instance of the kernel, "running once as a single logical thread of execution", with no visible internal threads. The compiler maps it to one or more thread blocks, clusters, or warps (glossary.md:33-43).<span class="cc"><span class="ck">C</span>closest cousin: a thread block, indexed by <code>blockIdx</code></span></dd></div>
+    <div><dt>launch grid <span class="tag h">host</span></dt><dd>The three-axis arrangement of tile blocks, either given with <code>.grid</code> / <code>.const_grid</code> or inferred by ceiling division from a partition; <code>const_grid</code> also enters the JIT cache key and gives <code>program_id</code> static bounds (tensor.rs:798-841, tile_kernel.rs:1350-1352).<span class="cc"><span class="ck">C</span><code>dim3</code> grid, read back as <code>gridDim</code></span></dd></div>
+    <div><dt>program_id, num_programs <span class="tag g">gpu</span></dt><dd>This program's index along an axis and the extent of that axis; <code>0 &lt;= program_id(k) &lt; num_programs(k)</code>; axes above 2 fail a device assertion. Tuple forms: <code>get_tile_block_id()</code>, <code>get_num_tile_blocks()</code> (_core.rs:1598-1656).<span class="cc"><span class="ck">C</span><code>blockIdx.x</code> and <code>gridDim.x</code></span></dd></div>
+    <div><dt>partial edge tile <span class="tag g">gpu</span></dt><dd>The last tile on an axis the tile size does not divide. It still gets a block; its out-of-range lanes read as zero (<code>load_tile</code> passes <code>padding::Zero</code>, _core.rs:3463-3484) and stores past the end are dropped (slice_non_divisible.rs:245).<span class="cc"><span class="ck">C</span>the <code>if (i &lt; n)</code> guard at the top of a kernel</span></dd></div>
+    <div><dt>GridBound, partition_prefix <span class="tag h">host</span></dt><dd>A binding's constraint on the grid: <code>Exact</code> by default, <code>AtMost</code> per axis when you opt in with <code>partition_prefix</code>, so a launch may cover a prefix of the blocks and the rest keep their contents (tensor.rs:269-278, 1817-1827).<span class="cc"><span class="ck">C</span>none; you launch a smaller grid and nothing checks you</span></dd></div>
+    <div><dt>thread <span class="tag g">gpu</span></dt><dd>One lane of execution on the hardware. cuTile exposes no operation that names one, though the SASS still reads <code>SR_TID.X</code>.<span class="cc"><span class="ck">C</span><code>threadIdx</code></span></dd></div>
+    <div><dt>warp <span class="tag g">gpu</span></dt><dd>"A group of 32 GPU threads that execute instructions in lockstep. Warps are the smallest scheduling unit on an SM." In cuTile it appears only as the <code>num_worker_warps_per_cta</code> hint (glossary.md:168-170, performance.md:133).<span class="cc"><span class="ck">C</span>a warp; <code>__shfl_sync</code>, <code>__ballot_sync</code></span></dd></div>
+    <div><dt>cluster (CGA) <span class="tag g">gpu</span></dt><dd>A group of thread blocks that can share data across SMs; in cuTile only the <code>num_cta_in_cga</code> hint, and in the SASS the <code>SR_CgaCtaId</code> read. Not to be confused with the DSL's const generic arrays, which the docs also abbreviate CGA (performance.md:130, ARCHITECTURE.md:400-405).<span class="cc"><span class="ck">C</span>a thread block cluster</span></dd></div>
+    <div><dt>SM <span class="tag g">gpu</span></dt><dd>The streaming multiprocessor, with its own registers, shared memory, and Tensor Cores; tile blocks are scheduled onto SMs by hardware, several per SM when resources allow (glossary.md:57-59).<span class="cc"><span class="ck">C</span>the same thing</span></dd></div>
+    <div><dt>occupancy <span class="tag g">gpu</span></dt><dd>The ratio of active warps to the maximum an SM supports, driven by register and shared-memory use; also an optimization hint name (glossary.md:164-166).<span class="cc"><span class="ck">C</span>the same thing</span></dd></div>
+    <div><dt>concurrent vs parallel <span class="tag g">gpu</span></dt><dd>Concurrent means independently in progress, in any order; parallel means at the same time on different SMs. A launch is both, and the book maps the distinction onto the Rust book's chapter 17 (glossary.md:45-55).<span class="cc"><span class="ck">C</span>the same distinction, rarely spelled out</span></dd></div>
+  </dl>
+  <h3>Host side</h3>
+  <dl class="gloss">
+    <div><dt>stream <span class="tag h">host</span></dt><dd>An in-order queue of GPU work; work on one stream runs in sequence, separate streams may overlap (glossary.md:160-162).<span class="cc"><span class="ck">C</span><code>cudaStream_t</code></span></dd></div>
+    <div><dt>StreamPoolRoundRobin <span class="tag h">host</span></dt><dd>The default scheduling policy, rotating over four streams so independent operations can overlap; <code>.then()</code> chains share one stream (cuda-async/README.md:85-104).<span class="cc"><span class="ck">C</span>four streams you rotate yourself</span></dd></div>
+    <div><dt>.sync(), .sync_on(&amp;stream) <span class="tag h">host</span></dt><dd>Submit and block the calling thread on <code>cuStreamSynchronize</code> (README.md:107).<span class="cc"><span class="ck">C</span><code>cudaStreamSynchronize</code></span></dd></div>
+    <div><dt>.await, DeviceFuture <span class="tag h">host</span></dt><dd>Submit on first poll and resolve without blocking the calling thread; a <code>DeviceFuture</code> has a stream assigned but no work submitted until polled (README.md:105-130, glossary.md:144-147).<span class="cc"><span class="ck">C</span>a completion callback or an event poll loop</span></dd></div>
+    <div><dt>inline spin <span class="tag h">host</span></dt><dd>The first completion path: poll with <code>cuStreamQuery</code> for <code>CUDA_ASYNC_SPIN_BUDGET_US</code> microseconds, default 20, 0 to disable (README.md:111-116).<span class="cc"><span class="ck">C</span>spinning on <code>cudaStreamQuery</code></span></dd></div>
+    <div><dt>cuda-async-reactor <span class="tag h">host</span></dt><dd>One process-wide thread scanning pinned-memory slots written by <code>cuStreamWriteValue32</code>, waking futures and parking when nothing is in flight; the default notification path (README.md:117-122).<span class="cc"><span class="ck">C</span>a polling thread you write and name yourself</span></dd></div>
+    <div><dt>host callback <span class="tag h">host</span></dt><dd>The fallback path through <code>cuLaunchHostFunc</code>, selectable with <code>CUDA_ASYNC_HOST_SYNC</code>; a driver thread runs it (README.md:123-128).<span class="cc"><span class="ck">C</span><code>cudaLaunchHostFunc</code></span></dd></div>
+    <div><dt>per-thread execution lock <span class="tag h">host</span></dt><dd>Only one <code>DeviceOp</code> executes per thread at a time; nesting a sync or await inside <code>.then()</code> returns a <code>DeviceError</code> instead of racing streams; <code>then_unchecked</code> is the unsafe escape (README.md:78-83, device-operations.md:368).<span class="cc"><span class="ck">C</span>none; in CUDA C this is discipline</span></dd></div>
+    <div><dt>default device <span class="tag h">host</span></dt><dd>Thread-local; <code>set_default_device(id)</code> changes it for the current thread only (device-operations.md:370).<span class="cc"><span class="ck">C</span><code>cudaSetDevice</code>, also per-thread</span></dd></div>
+  </dl>
+
+  <div class="aside">
+    <h3>Things to check when the pod is back</h3>
+    <ul>
+      <li>The three explorer presets are a host-only unit test; no GPU needed.</li>
+      <li>The 192 by 134 copy and the partial-coverage cases need the GPU.</li>
+      <li>GEMM is the cleanest example of a 2-D grid inferred from an output partition.</li>
+    </ul>
+<pre class="cmd">cargo test -p cutile --lib --features experimental-tune launch_grid_is_the_ceiling_division
+cargo test -p cutile --test slice_non_divisible copy_2d_non_divisible_both_dims
+cargo test -p cutile --test gpu prefix_binding
+CUTILE_DUMP=ir cargo run -p cutile-examples --example gemm</pre>
+  </div>
+
+  <div class="aside raw">
+    <h3>The raw dumps this note leans on</h3>
+    <p>From the first note, <a href="https://claude.ai/code/artifact/062c0662-af8e-42bb-9ee1-0def4310853a">hello_world, Annotated</a>, kept in the repo under <code>notes/2026-09-17-hello-world-excerpts/</code>.</p>
+    <ul>
+      <li><a href="2026-09-17-hello-world-excerpts/sass-excerpt.txt">sass-excerpt.txt</a> the three SR_CTAID reads and the SR_TID.X read</li>
+      <li><a href="2026-09-17-hello-world-excerpts/tile-ir-and-bytecode.txt">tile-ir-and-bytecode.txt</a> the IR with only block-id ops in it</li>
+      <li><a href="2026-09-17-hello-world-excerpts/generated-launcher.txt">generated-launcher.txt</a> block_dim: (1, 1, 1), line 232</li>
+      <li><a href="2026-09-17-hello-world-excerpts/disk-cache-runs.txt">disk-cache-runs.txt</a> two runs, two finishing orders</li>
+      <li><a href="2026-09-17-hello-world-excerpts/README.md">README.md</a> provenance and the commands</li>
+    </ul>
+  </div>
+
+  <footer>Written 2026-09-18 from the repo at commit b028b5f on branch <code>test/hello-world-grid</code>. Quotes are verbatim from <code>cutile-book/reference/glossary.md</code>, <code>cutile-book/guide/useful-mental-models.md</code>, <code>cuda-async/README.md</code>, and the source files named inline; the explorer's launcher messages are ports of <code>infer_launch_grid</code> and <code>validate_grid_bounds</code> in <code>cutile/src/tile_kernel.rs</code>, and the <code>error: </code> prefix is what <code>cutile::error::Error</code>'s Display writes. The links above resolve both from the repo and from the published page; the first note's own dump links use an <code>excerpts/</code> path that resolves only when published.</footer>
+</div>
+
+<script>
+(function () {
+  // ------------------------------------------------------------ formatting
+  // Rust's {:?} on a three-tuple of u32 prints "(4, 4, 1)"; on a Vec it prints "[100, 256]".
+  function dbgTuple(t) { return '(' + t[0] + ', ' + t[1] + ', ' + t[2] + ')'; }
+  function dbgSlice(a) { return '[' + a.join(', ') + ']'; }
+  function esc(s) { return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
+
+  // The four messages of partition_launch_grid, cutile/src/tensor.rs:807-839, verbatim.
+  var ERR = {
+    shape: function (shape) { return 'Shape dimensions must be positive, got ' + dbgSlice(shape) + '.'; },
+    rank: function (tile, shape) { return 'Partition rank ' + tile.length + ' does not match tensor rank ' + shape.length + ' (partition shape ' + dbgSlice(tile) + ', tensor shape ' + dbgSlice(shape) + ').'; },
+    tile: function (tile) { return 'Partition dimensions must be positive, got ' + dbgSlice(tile) + '.'; },
+    rank3: 'Mutable tensor must be at most rank 3.'
+  };
+
+  // Port of partition_launch_grid (cutile/src/tensor.rs:798-841).
+  //   shape: array of tensor extents, tile: array of tile sizes, both plain numbers.
+  //   Returns { grid: [x, y, z] } on success, or { error: message } using the ERR helpers above.
+  //   The Rust checks in this order: any shape extent <= 0; partition rank != tensor rank;
+  //   any tile size == 0; then the match on rank with arms for 1, 2, 3 and the rank3 message.
+  //   Each grid axis is the ceiling division extent / tile; unused axes are 1.
+  function inferGrid(shape, tile) {
+    if (shape.some(function (d) { return d <= 0; })) return { error: ERR.shape(shape) };
+    if (tile.length !== shape.length) return { error: ERR.rank(tile, shape) };
+    if (tile.indexOf(0) !== -1) return { error: ERR.tile(tile) };
+    var axis = function (i) { return Math.ceil(shape[i] / tile[i]); };   // extent.div_ceil(tile)
+    switch (shape.length) {
+      case 1: return { grid: [axis(0), 1, 1] };
+      case 2: return { grid: [axis(0), axis(1), 1] };
+      case 3: return { grid: [axis(0), axis(1), axis(2)] };
+      default: return { error: ERR.rank3 };
+    }
+  }
+
+  // Port of validate_grid_bounds (tile_kernel.rs:1045-1071): Exact bounds first, then AtMost.
+  function validateGridBounds(grid, bounds) {
+    var i, k;
+    for (i = 0; i < bounds.length; i++) {
+      if (bounds[i].kind !== 'Exact') continue;
+      var e = bounds[i].g;
+      if (e[0] !== grid[0] || e[1] !== grid[1] || e[2] !== grid[2]) {
+        return 'launch grid ' + dbgTuple(grid) + ' does not match the inferred partition grid ' + dbgTuple(e);
+      }
+    }
+    for (i = 0; i < bounds.length; i++) {
+      if (bounds[i].kind !== 'AtMost') continue;
+      var m = bounds[i].g;
+      for (k = 0; k < 3; k++) {
+        if (grid[k] > m[k]) {
+          return 'launch grid ' + dbgTuple(grid) + ' exceeds the partial-coverage partition grid ' + dbgTuple(m) + ' on axis ' + k;
+        }
+      }
+    }
+    return null;
+  }
+  // Port of infer_launch_grid (tile_kernel.rs:1197-1230).
+  function inferLaunchGrid(grid, bounds) {
+    var exact = bounds.filter(function (b) { return b.kind === 'Exact'; }).map(function (b) { return b.g; });
+    if (!(grid[0] === 0 && grid[1] === 0 && grid[2] === 0)) {
+      var e1 = validateGridBounds(grid, bounds);
+      if (e1) return { error: e1 };
+      return { grid: grid, explicit: true };
+    }
+    if (exact.length === 0) {
+      if (bounds.length === 0) return { error: 'Launch grid required.' };
+      return { error: 'Launch grid required: a partial-coverage (partition_prefix) binding only bounds the grid; specify the grid explicitly or bind with partition().' };
+    }
+    var g = exact[0];
+    var e2 = validateGridBounds(g, bounds);
+    if (e2) return { error: e2 };
+    return { grid: g, explicit: false };
+  }
+
+  // ------------------------------------------------------------ state
+  var $ = function (id) { return document.getElementById(id); };
+  var state = { rank: 2, shape: [100, 256, 8], tile: [32, 64, 3], drop: false, hand: false, launch: [0, 0, 0], prefix: false, z: 0, sel: null };
+  var presets = [
+    { label: '[256] / [64]', src: 'tensor.rs:2436', rank: 1, shape: [256, 256, 8], tile: [64, 64, 3] },
+    { label: '[100, 256] / [32, 64]', src: 'tensor.rs:2436', rank: 2, shape: [100, 256, 8], tile: [32, 64, 3] },
+    { label: '[8, 8, 8] / [4, 8, 3]', src: 'tensor.rs:2436', rank: 3, shape: [8, 8, 8], tile: [4, 8, 3] },
+    { label: '[192, 134] / [128, 128]', src: 'slice_non_divisible.rs:245', rank: 2, shape: [192, 134, 8], tile: [128, 128, 3] },
+    { label: '[40, 8] / [16, 8]', src: 'partial_coverage.rs:43', rank: 2, shape: [40, 8, 8], tile: [16, 8, 3] }
+  ];
+  var presetBox = $('presets');
+  presets.forEach(function (p, i) {
+    var b = document.createElement('button');
+    b.type = 'button'; b.innerHTML = esc(p.label) + '<small>' + esc(p.src) + '</small>'; b.dataset.i = i;
+    b.addEventListener('click', function () {
+      state.rank = p.rank; state.shape = p.shape.slice(); state.tile = p.tile.slice();
+      state.drop = false; state.hand = false; state.z = 0; state.sel = null;
+      $('rank').value = String(p.rank); $('drop').checked = false; $('hand').checked = false;
+      syncInputs(); render();
+    });
+    presetBox.appendChild(b);
+  });
+  function syncInputs() {
+    ['s0', 's1', 's2'].forEach(function (id, k) { $(id).value = state.shape[k]; });
+    ['t0', 't1', 't2'].forEach(function (id, k) { $(id).value = state.tile[k]; });
+    ['g0', 'g1', 'g2'].forEach(function (id, k) { $(id).value = state.launch[k]; });
+  }
+  function readInputs() {
+    state.rank = parseInt($('rank').value, 10);
+    ['s0', 's1', 's2'].forEach(function (id, k) { state.shape[k] = parseInt($(id).value, 10) || 0; });
+    ['t0', 't1', 't2'].forEach(function (id, k) { state.tile[k] = parseInt($(id).value, 10) || 0; });
+    ['g0', 'g1', 'g2'].forEach(function (id, k) { state.launch[k] = parseInt($(id).value, 10) || 0; });
+    state.drop = $('drop').checked; state.hand = $('hand').checked; state.prefix = $('prefix').checked;
+  }
+  ['rank', 's0', 's1', 's2', 't0', 't1', 't2', 'g0', 'g1', 'g2', 'drop', 'prefix'].forEach(function (id) {
+    $(id).addEventListener('change', function () { readInputs(); state.sel = null; state.z = 0; render(); });
+    $(id).addEventListener('input', function () { if ($(id).type === 'number') { readInputs(); render(); } });
+  });
+  $('hand').addEventListener('change', function () {
+    readInputs();
+    if (state.hand) {
+      var r = current();
+      if (r.grid) { state.launch = r.grid.slice(); syncInputs(); }
+    }
+    render();
+  });
+
+  // ------------------------------------------------------------ derived
+  function shapeIn() { var s = state.shape.slice(0, Math.min(state.rank, 3)); if (state.rank === 4) s.push(1); return s; }
+  function tileIn() { var t = state.tile.slice(0, Math.min(state.rank, 3)); if (state.rank === 4) t.push(1); if (state.drop) t.pop(); return t; }
+  function current() { return inferGrid(shapeIn(), tileIn()); }
+  function ceil(a, b) { return Math.ceil(a / b); }
+  function axisInfo(k, shape, tile) {
+    var n = ceil(shape[k], tile[k]); var rem = shape[k] % tile[k];
+    return { tiles: n, full: rem === 0 ? n : n - 1, partial: rem === 0 ? 0 : 1, lanes: rem === 0 ? tile[k] : rem };
+  }
+
+  // ------------------------------------------------------------ render
+  function render() {
+    var vis = state.rank === 4 ? 3 : state.rank;
+    ['s1', 't1'].forEach(function (id) { $(id).parentElement.hidden = vis < 2; });
+    ['s2', 't2'].forEach(function (id) { $(id).parentElement.hidden = vis < 3; });
+    $('handgroup').hidden = !state.hand;
+    var shape = shapeIn(), tile = tileIn();
+    var res = inferGrid(shape, tile);
+    var fig = $('fig'), arith = $('arith'), detail = $('detail'), lb = $('launchbox'), cap = $('figcap');
+
+    if (res.error) {
+      fig.innerHTML = '<div class="errcard"><b>error: </b>' + esc(res.error) + '</div>';
+      cap.textContent = res.error === ERR.rank3
+        ? 'A Tile itself reaches rank 6 and this path stops at 3: two different limits with two different causes. The message is the last arm of the match in partition_launch_grid.'
+        : 'This is the message partition_launch_grid returns before any grid is computed; the checks run in the order shape, rank, tile size, then rank arm.';
+      arith.innerHTML = '<span class="dim">tensor  shape       </span>' + esc(dbgSlice(shape)) + '\n<span class="dim">tile    partition   </span>' + esc(dbgSlice(tile)) + '\n\n<span class="err">error: ' + esc(res.error) + '</span>';
+      detail.innerHTML = '<div class="term"><span class="dim">no partition, so no tiles and no program owns anything</span></div>';
+      lb.innerHTML = '<span class="dim">nothing to launch</span>';
+      return;
+    }
+
+    var grid = res.grid; var rank = shape.length;
+    var info = shape.map(function (_, k) { return axisInfo(k, shape, tile); });
+    var programs = grid[0] * grid[1] * grid[2];
+
+    // arithmetic block
+    var names = ['x', 'y', 'z'];
+    var lines = ['<span class="dim">tensor  shape       </span>' + esc(dbgSlice(shape)), '<span class="dim">tile    partition   </span>' + esc(dbgSlice(tile)), ''];
+    for (var k = 0; k < 3; k++) {
+      if (k < rank) {
+        var a = info[k];
+        var desc = a.partial ? a.full + ' full tile' + (a.full === 1 ? '' : 's') + ' + 1 partial (' + a.lanes + ' of ' + tile[k] + ' lanes)' : a.full + ' full tile' + (a.full === 1 ? '' : 's') + ', exact';
+        lines.push('grid.' + names[k] + ' = ceil(' + shape[k] + ' / ' + tile[k] + ') = ' + grid[k] + '    <span class="dim">axis ' + k + ': ' + esc(desc) + '</span>');
+      } else {
+        lines.push('grid.' + names[k] + ' = 1                    <span class="dim">rank ' + rank + ': trailing axes are 1</span>');
+      }
+    }
+    lines.push('', 'inferred launch grid  ' + esc(dbgTuple(grid)) + '    <span class="dim">' + programs + ' program' + (programs === 1 ? '' : 's') + '</span>');
+    arith.innerHTML = lines.join('\n');
+
+    // launcher block
+    var bounds = [{ kind: state.prefix ? 'AtMost' : 'Exact', g: grid }];
+    var launchGrid = state.hand ? state.launch.slice() : [0, 0, 0];
+    var L = inferLaunchGrid(launchGrid, bounds);
+    var launched = null;
+    var lbl = ['<span class="dim">' + esc('binding: ' + (state.prefix ? 'z.partition_prefix(' : 'z.partition(') + dbgSlice(tile) + ')  ->  GridBound::' + (state.prefix ? 'AtMost' : 'Exact') + dbgTuple(grid)) + '</span>'];
+    lbl.push('<span class="dim">' + esc(state.hand ? 'launcher.grid(' + dbgTuple(launchGrid) + ').sync_on(&stream)?' : 'launcher.sync_on(&stream)?   // no .grid(): infer it') + '</span>', '');
+    if (L.error) {
+      lbl.push('<span class="err">error: ' + esc(L.error) + '</span>');
+    } else {
+      launched = L.grid;
+      var visited = launched[0] * launched[1] * launched[2];
+      if (state.prefix && visited < programs) {
+        lbl.push('ok: ' + visited + ' of ' + programs + ' blocks launched; blocks beyond the launch grid are never visited');
+      } else if (L.explicit) {
+        lbl.push('ok: launch grid ' + esc(dbgTuple(launched)) + ' equals the inferred grid, so the explicit call is redundant but allowed');
+      } else {
+        lbl.push('ok: inferred ' + esc(dbgTuple(launched)) + ', ' + programs + ' programs');
+      }
+    }
+    lb.innerHTML = lbl.join('\n');
+
+    // figure
+    var gx = grid[0], gy = rank >= 2 ? grid[1] : 1, gz = rank >= 3 ? grid[2] : 1;
+    if (state.z >= gz) state.z = 0;
+    if (gx * gy > 400) {
+      fig.innerHTML = '<div class="errcard">' + (gx * gy) + ' tiles in one slice is too many to draw here; the arithmetic on the right still applies.</div>';
+      cap.textContent = '';
+      detail.innerHTML = '';
+      return;
+    }
+    if (!state.sel || state.sel[0] >= gx || state.sel[1] >= gy || state.sel[2] >= gz) state.sel = [gx - 1, gy - 1, state.z];
+    state.sel[2] = state.z;
+    var T = 100, L0 = 44, T0 = 26, W = L0 + gx * T + 12, H = T0 + gy * T + 12;
+    var svg = [];
+    svg.push('<defs><pattern id="hatch" patternUnits="userSpaceOnUse" width="8" height="8" patternTransform="rotate(45)"><line x1="0" y1="0" x2="0" y2="8" class="hatch-line"/></pattern></defs>');
+    svg.push('<text x="' + (L0 + gx * T / 2) + '" y="10" text-anchor="middle" class="axlabel">axis 0 → (shape[0] = ' + shape[0] + ')</text>');
+    if (rank >= 2) svg.push('<text x="10" y="' + (T0 + gy * T / 2) + '" transform="rotate(-90 10 ' + (T0 + gy * T / 2) + ')" text-anchor="middle" class="axlabel">axis 1 ↓ (shape[1] = ' + shape[1] + ')</text>');
+    // the tensor's own edge, in element space (a partial tile ends before its cell does)
+    var ex = L0 + (shape[0] / tile[0]) * T, ey = rank >= 2 ? T0 + (shape[1] / tile[1]) * T : T0 + T;
+    for (var i = 0; i < gx; i++) svg.push('<text x="' + (L0 + i * T) + '" y="' + (T0 - 4) + '" text-anchor="middle" class="tick">' + (i * tile[0]) + '</text>');
+    if (ex - (L0 + (gx - 1) * T) >= 30) svg.push('<text x="' + ex + '" y="' + (T0 - 4) + '" text-anchor="middle" class="tick">' + shape[0] + '</text>');
+    if (rank >= 2) {
+      for (var j = 0; j < gy; j++) svg.push('<text x="' + (L0 - 5) + '" y="' + (T0 + j * T + 4) + '" text-anchor="end" class="tick">' + (j * tile[1]) + '</text>');
+      if (ey - (T0 + (gy - 1) * T) >= 30) svg.push('<text x="' + (L0 - 5) + '" y="' + (ey + 4) + '" text-anchor="end" class="tick">' + shape[1] + '</text>');
+    }
+    var nvWarn = false;
+    for (var y = 0; y < gy; y++) {
+      for (var x = 0; x < gx; x++) {
+        var cx = L0 + x * T, cy = T0 + y * T;
+        var covX = Math.min(tile[0], shape[0] - x * tile[0]) / tile[0];
+        var covY = rank >= 2 ? Math.min(tile[1], shape[1] - y * tile[1]) / tile[1] : 1;
+        var covZ = rank >= 3 ? Math.min(tile[2], shape[2] - state.z * tile[2]) / tile[2] : 1;
+        var partial = covX < 1 || covY < 1 || covZ < 1;
+        var nv = launched && (x >= launched[0] || y >= launched[1] || state.z >= launched[2]);
+        if (nv) nvWarn = true;
+        var isSel = state.sel[0] === x && state.sel[1] === y;
+        var id = x + ',' + y + ',' + state.z;
+        var lab = rank >= 3 ? '(' + x + ',' + y + ',' + state.z + ')' : rank === 2 ? '(' + x + ',' + y + ')' : '(' + x + ')';
+        var title = 'program ' + lab + (partial ? ', partial' : '') + (nv ? ', never visited' : '');
+        var g = '<g class="tile" tabindex="0" role="button" data-k="' + id + '"><title>' + esc(title) + '</title>';
+        if (nv) {
+          g += '<rect x="' + cx + '" y="' + cy + '" width="' + T + '" height="' + T + '" class="t-nv"/>';
+          g += '<text x="' + (cx + T / 2) + '" y="' + (cy + T / 2 + 4) + '" text-anchor="middle" class="tlabel nv">not visited</text>';
+        } else if (partial) {
+          g += '<rect x="' + cx + '" y="' + cy + '" width="' + T + '" height="' + T + '" class="t-pad"/>';
+          g += '<rect x="' + cx + '" y="' + cy + '" width="' + (T * covX) + '" height="' + (T * covY) + '" class="t-cov"/>';
+          g += '<rect x="' + cx + '" y="' + cy + '" width="' + T + '" height="' + T + '" class="t-cell"/>';
+          g += '<text x="' + (cx + T / 2) + '" y="' + (cy + T / 2 + 4) + '" text-anchor="middle" class="tlabel">' + esc(lab) + '</text>';
+        } else {
+          g += '<rect x="' + cx + '" y="' + cy + '" width="' + T + '" height="' + T + '" class="t-full"/>';
+          g += '<text x="' + (cx + T / 2) + '" y="' + (cy + T / 2 + 4) + '" text-anchor="middle" class="tlabel">' + esc(lab) + '</text>';
+        }
+        if (isSel) g += '<rect x="' + (cx + 1.5) + '" y="' + (cy + 1.5) + '" width="' + (T - 3) + '" height="' + (T - 3) + '" class="t-sel"/>';
+        g += '</g>';
+        svg.push(g);
+      }
+    }
+    svg.push('<rect x="' + L0 + '" y="' + T0 + '" width="' + (ex - L0) + '" height="' + (ey - T0) + '" class="t-edge"/>');
+    var scale = Math.min(1, 460 / H, 720 / W);
+    var html = '<svg viewBox="0 0 ' + W + ' ' + H + '" style="width:' + Math.round(W * scale) + 'px;max-width:100%" role="group" aria-label="tiles over the tensor">' + svg.join('') + '</svg>';
+    if (rank >= 3) {
+      html += '<div class="zrow"><span>axis 2, one slice at a time:</span>';
+      for (var zz = 0; zz < gz; zz++) {
+        var z0 = zz * tile[2], z1 = Math.min(shape[2], (zz + 1) * tile[2]);
+        var covZz = (z1 - z0) / tile[2];
+        html += '<button type="button" class="zbtn' + (zz === state.z ? ' cur' : '') + '" data-z="' + zz + '">z = ' + zz + '<small>elements ' + z0 + ' .. ' + z1 + (covZz < 1 ? ', ' + (z1 - z0) + ' of ' + tile[2] + ' lanes' : '') + '</small></button>';
+      }
+      html += '</div>';
+    }
+    fig.innerHTML = html;
+    Array.prototype.forEach.call(fig.querySelectorAll('.tile'), function (t) {
+      t.addEventListener('click', function () { var p = t.dataset.k.split(',').map(Number); state.sel = p; render(); });
+      t.addEventListener('keydown', function (e) { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); t.click(); } });
+    });
+    Array.prototype.forEach.call(fig.querySelectorAll('.zbtn'), function (b) {
+      b.addEventListener('click', function () { state.z = parseInt(b.dataset.z, 10); state.sel = null; render(); });
+    });
+    var capText = 'Each square is one tile of ' + tile.join(' x ') + ' lanes; the solid outline is the tensor itself, ' + shape.join(' x ') + ' elements. ';
+    capText += programs + ' program' + (programs === 1 ? '' : 's') + ' in a ' + dbgTuple(grid) + ' grid';
+    if (rank >= 3) capText += ', showing slice z = ' + state.z + ' of ' + gz;
+    capText += '.';
+    if (nvWarn) capText += ' Grey tiles are blocks the launch grid does not reach; they keep their previous contents.';
+    cap.textContent = capText;
+
+    // detail panel
+    var s = state.sel; var dl = [];
+    dl.push('program_id(0) = ' + s[0] + '   program_id(1) = ' + (rank >= 2 ? s[1] : 0) + '   program_id(2) = ' + (rank >= 3 ? s[2] : 0));
+    dl.push('get_tile_block_id()   = ' + esc(dbgTuple([s[0], rank >= 2 ? s[1] : 0, rank >= 3 ? s[2] : 0])));
+    dl.push('get_num_tile_blocks() = ' + esc(dbgTuple(launched || grid)), '');
+    var real = 1, lanesAll = 1, partialAxes = [];
+    for (var kk = 0; kk < rank; kk++) {
+      var idx = s[kk];
+      var lo = idx * tile[kk], hi = Math.min(shape[kk], lo + tile[kk]), cov = hi - lo, pad = tile[kk] - cov;
+      real *= cov; lanesAll *= tile[kk];
+      if (pad > 0) partialAxes.push(kk);
+      dl.push('axis ' + kk + '   elements ' + String(lo).padStart(4) + ' .. ' + String(hi).padStart(4) + '  of ' + String(shape[kk]).padStart(4) + '    ' + cov + ' of ' + tile[kk] + ' lanes' + (pad > 0 ? ', ' + pad + ' padded' : ', full'));
+    }
+    dl.push('', real + ' real element' + (real === 1 ? '' : 's') + ' inside a ' + tile.join(' x ') + ' = ' + lanesAll + '-lane tile');
+    var selNv = launched && (s[0] >= launched[0] || (rank >= 2 && s[1] >= launched[1]) || (rank >= 3 && s[2] >= launched[2]));
+    if (selNv) dl.push('<span class="err">outside the launch grid: this block never runs, its elements keep their contents</span>');
+    else if (partialAxes.length) dl.push('partial on axis ' + partialAxes.join(' and axis '));
+    else dl.push('full tile');
+    var idxList = []; for (var q = 0; q < rank; q++) idxList.push(s[q]);
+    dl.push('', '<span class="dim">let tile = x.partition(shape![' + tile.join(', ') + ']).load([' + idxList.join(', ') + ']);</span>');
+    detail.innerHTML = '<div class="term">' + dl.join('\n') + '</div>';
+
+    // keep keyboard focus on the selected tile across redraws, but never steal it on load
+    if (document.activeElement === fig || fig.contains(document.activeElement)) {
+      var selEl = fig.querySelector('.tile[data-k="' + state.sel.join(',') + '"]');
+      if (selEl) selEl.focus();
+    }
+  }
+
+  // keyboard: arrow keys move the selection within the current slice
+  $('fig').addEventListener('keydown', function (e) {
+    var r = current(); if (r.error || !state.sel) return;
+    var gx = r.grid[0], gy = state.rank >= 2 ? r.grid[1] : 1;
+    var s = state.sel.slice(); var moved = true;
+    if (e.key === 'ArrowRight') s[0] = Math.min(gx - 1, s[0] + 1);
+    else if (e.key === 'ArrowLeft') s[0] = Math.max(0, s[0] - 1);
+    else if (e.key === 'ArrowDown') s[1] = Math.min(gy - 1, s[1] + 1);
+    else if (e.key === 'ArrowUp') s[1] = Math.max(0, s[1] - 1);
+    else moved = false;
+    if (moved) { e.preventDefault(); state.sel = s; render(); }
+  });
+
+  syncInputs();
+  render();
+})();
+</script>

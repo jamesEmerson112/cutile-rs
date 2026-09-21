@@ -1,0 +1,195 @@
+define hidden void @_RNvCs7IX6CBL240Q_11hello_world4main(ptr sret([64 x i8]) align 8 %_0) unnamed_addr #0 personality ptr @rust_eh_personality !dbg !8215 {
+start:
+  %residual.dbg.spill7 = alloca [4 x i8], align 4
+  %residual.dbg.spill = alloca [4 x i8], align 4
+  %0 = alloca [32 x i8], align 8
+  %1 = alloca [80 x i8], align 8
+  %val.dbg.spill3 = alloca [8 x i8], align 8
+  %2 = alloca [16 x i8], align 8
+  %val.dbg.spill1 = alloca [8 x i8], align 8
+  %val.dbg.spill = alloca [0 x i8], align 1
+  %residual = alloca [32 x i8], align 8
+  %_18 = alloca [12 x i8], align 4
+  %_17 = alloca [80 x i8], align 8
+  %_16 = alloca [32 x i8], align 8
+  %_15 = alloca [32 x i8], align 8
+  %launcher = alloca [80 x i8], align 8
+  %_9 = alloca [16 x i8], align 8
+  %_8 = alloca [16 x i8], align 8
+  %stream = alloca [8 x i8], align 8
+  %_3 = alloca [16 x i8], align 8
+  %_2 = alloca [16 x i8], align 8
+  %device = alloca [8 x i8], align 8
+    #dbg_declare(ptr %device, !8217, !DIExpression(), !8263)
+    #dbg_declare(ptr %stream, !8237, !DIExpression(), !8264)
+    #dbg_declare(ptr %launcher, !8243, !DIExpression(), !8265)
+    #dbg_declare(ptr %residual, !8245, !DIExpression(), !8266)
+    #dbg_declare(ptr %val.dbg.spill, !8261, !DIExpression(), !8267)
+; call <cuda_core::runtime::Device>::new
+  call void @_RNvMs8_NtCslDw4XWXMHBm_9cuda_core7runtimeNtB5_6Device3new(ptr sret([16 x i8]) align 8 %_3, i64 0), !dbg !8268
+; call <core::result::Result<alloc::sync::Arc<cuda_core::runtime::Device>, cuda_core::error::DriverError> as core::ops::try_trait::Try>::branch
+  call void @_RNvXsp_NtCsgxBkk5gSRhY_4core6resultINtB5_6ResultINtNtCs6i54tJFfzR_5alloc4sync3ArcNtNtCslDw4XWXMHBm_9cuda_core7runtime6DeviceENtNtB1l_5error11DriverErrorENtNtNtB7_3ops9try_trait3Try6branchCs3qVQTR5HMYd_10cuda_async(ptr sret([16 x i8]) align 8 %_2, ptr align 8 %_3) #18, !dbg !8268
+  %3 = load i32, ptr %_2, align 8, !dbg !8268
+  %_4 = zext i32 %3 to i64, !dbg !8268
+  %4 = trunc nuw i64 %_4 to i1, !dbg !8268
+  br i1 %4, label %bb5, label %bb4, !dbg !8268
+
+bb5:                                              ; preds = %start
+  %5 = getelementptr inbounds i8, ptr %_2, i64 4, !dbg !8269
+  %residual6 = load i32, ptr %5, align 4, !dbg !8269
+  store i32 %residual6, ptr %residual.dbg.spill7, align 4, !dbg !8269
+    #dbg_declare(ptr %residual.dbg.spill7, !8219, !DIExpression(), !8270)
+; call <core::result::Result<(), cutile::error::Error> as core::ops::try_trait::FromResidual<core::result::Result<core::convert::Infallible, cuda_core::error::DriverError>>>::from_residual
+  call void @_RNvXsq_NtCsgxBkk5gSRhY_4core6resultINtB5_6ResultuNtNtCslZ6gXNEapY_6cutile5error5ErrorEINtNtNtB7_3ops9try_trait12FromResidualIBy_NtNtB7_7convert10InfallibleNtNtCslDw4XWXMHBm_9cuda_core5error11DriverErrorEE13from_residualBP_(ptr sret([64 x i8]) align 8 %_0, i32 %residual6, ptr align 8 @alloc_9a49ece07983a2cdd533fce6a339ad06) #18, !dbg !8271
+  br label %bb19, !dbg !8271
+
+bb4:                                              ; preds = %start
+  %6 = getelementptr inbounds i8, ptr %_2, i64 8, !dbg !8268
+  %val = load ptr, ptr %6, align 8, !dbg !8268
+  store ptr %val, ptr %val.dbg.spill1, align 8, !dbg !8268
+    #dbg_declare(ptr %val.dbg.spill1, !8235, !DIExpression(), !8272)
+  store ptr %val, ptr %device, align 8, !dbg !8272
+; invoke <cuda_core::runtime::Device>::new_stream
+  invoke void @_RNvMs8_NtCslDw4XWXMHBm_9cuda_core7runtimeNtB5_6Device10new_stream(ptr sret([16 x i8]) align 8 %_9, ptr align 8 %device)
+          to label %bb6 unwind label %cleanup, !dbg !8273
+
+bb21:                                             ; preds = %bb20, %cleanup
+; invoke core::ptr::drop_glue::<alloc::sync::Arc<cuda_core::runtime::Device>>
+  invoke void @_RINvNtCsgxBkk5gSRhY_4core3ptr9drop_glueINtNtCs6i54tJFfzR_5alloc4sync3ArcNtNtCslDw4XWXMHBm_9cuda_core7runtime6DeviceEEB1c_(ptr align 8 %device) #15
+          to label %bb22 unwind label %terminate, !dbg !8274
+
+cleanup:                                          ; preds = %bb9, %bb16, %bb14, %bb6, %bb4
+  %7 = landingpad { ptr, i32 }
+          cleanup
+  %8 = extractvalue { ptr, i32 } %7, 0
+  %9 = extractvalue { ptr, i32 } %7, 1
+  store ptr %8, ptr %2, align 8
+  %10 = getelementptr inbounds i8, ptr %2, i64 8
+  store i32 %9, ptr %10, align 8
+  br label %bb21
+
+bb6:                                              ; preds = %bb4
+; invoke <core::result::Result<alloc::sync::Arc<cuda_core::runtime::Stream>, cuda_core::error::DriverError> as core::ops::try_trait::Try>::branch
+  invoke void @_RNvXsp_NtCsgxBkk5gSRhY_4core6resultINtB5_6ResultINtNtCs6i54tJFfzR_5alloc4sync3ArcNtNtCslDw4XWXMHBm_9cuda_core7runtime6StreamENtNtB1l_5error11DriverErrorENtNtNtB7_3ops9try_trait3Try6branchCs3qVQTR5HMYd_10cuda_async(ptr sret([16 x i8]) align 8 %_8, ptr align 8 %_9)
+          to label %bb7 unwind label %cleanup, !dbg !8275
+
+bb7:                                              ; preds = %bb6
+  %11 = load i32, ptr %_8, align 8, !dbg !8275
+  %_11 = zext i32 %11 to i64, !dbg !8275
+  %12 = trunc nuw i64 %_11 to i1, !dbg !8275
+  br i1 %12, label %bb9, label %bb8, !dbg !8275
+
+bb9:                                              ; preds = %bb7
+  %13 = getelementptr inbounds i8, ptr %_8, i64 4, !dbg !8276
+  %residual5 = load i32, ptr %13, align 4, !dbg !8276
+  store i32 %residual5, ptr %residual.dbg.spill, align 4, !dbg !8276
+    #dbg_declare(ptr %residual.dbg.spill, !8239, !DIExpression(), !8277)
+; invoke <core::result::Result<(), cutile::error::Error> as core::ops::try_trait::FromResidual<core::result::Result<core::convert::Infallible, cuda_core::error::DriverError>>>::from_residual
+  invoke void @_RNvXsq_NtCsgxBkk5gSRhY_4core6resultINtB5_6ResultuNtNtCslZ6gXNEapY_6cutile5error5ErrorEINtNtNtB7_3ops9try_trait12FromResidualIBy_NtNtB7_7convert10InfallibleNtNtCslDw4XWXMHBm_9cuda_core5error11DriverErrorEE13from_residualBP_(ptr sret([64 x i8]) align 8 %_0, i32 %residual5, ptr align 8 @alloc_2403f703048bf3c113e6cbb7d9ae185b)
+          to label %bb23 unwind label %cleanup, !dbg !8278
+
+bb8:                                              ; preds = %bb7
+  %14 = getelementptr inbounds i8, ptr %_8, i64 8, !dbg !8275
+  %val2 = load ptr, ptr %14, align 8, !dbg !8275
+  store ptr %val2, ptr %val.dbg.spill3, align 8, !dbg !8275
+    #dbg_declare(ptr %val.dbg.spill3, !8241, !DIExpression(), !8279)
+  store ptr %val2, ptr %stream, align 8, !dbg !8279
+; invoke hello_world::hello_world_module::hello_world_kernel
+  invoke void @_RNvNtCs7IX6CBL240Q_11hello_world18hello_world_module18hello_world_kernel(ptr sret([80 x i8]) align 8 %launcher)
+          to label %bb10 unwind label %cleanup4, !dbg !8280
+
+bb20:                                             ; preds = %cleanup4
+; invoke core::ptr::drop_glue::<alloc::sync::Arc<cuda_core::runtime::Stream>>
+  invoke void @_RINvNtCsgxBkk5gSRhY_4core3ptr9drop_glueINtNtCs6i54tJFfzR_5alloc4sync3ArcNtNtCslDw4XWXMHBm_9cuda_core7runtime6StreamEECs3qVQTR5HMYd_10cuda_async(ptr align 8 %stream) #15
+          to label %bb21 unwind label %terminate, !dbg !8281
+
+cleanup4:                                         ; preds = %bb15, %bb12, %bb11, %bb10, %bb8
+  %15 = landingpad { ptr, i32 }
+          cleanup
+  %16 = extractvalue { ptr, i32 } %15, 0
+  %17 = extractvalue { ptr, i32 } %15, 1
+  store ptr %16, ptr %2, align 8
+  %18 = getelementptr inbounds i8, ptr %2, i64 8
+  store i32 %17, ptr %18, align 8
+  br label %bb20
+
+bb10:                                             ; preds = %bb8
+  store i32 2, ptr %_18, align 4, !dbg !8282
+  %19 = getelementptr inbounds i8, ptr %_18, i64 4, !dbg !8282
+  store i32 2, ptr %19, align 4, !dbg !8282
+  %20 = getelementptr inbounds i8, ptr %_18, i64 8, !dbg !8282
+  store i32 1, ptr %20, align 4, !dbg !8282
+  call void @llvm.memcpy.p0.p0.i64(ptr align 8 %1, ptr align 8 %launcher, i64 80, i1 false), !dbg !8283
+; invoke <hello_world::hello_world_module::HelloWorldKernel<cutile::tile_kernel::KernelArgs<()>> as cutile::tile_kernel::TileKernel<(), cutile::tile_kernel::KernelArgs<()>>>::grid
+  invoke void @_RNvXs_NtCs7IX6CBL240Q_11hello_world18hello_world_moduleINtB4_16HelloWorldKernelINtNtCslZ6gXNEapY_6cutile11tile_kernel10KernelArgsuEEINtB1i_10TileKerneluB1f_E4gridB6_(ptr sret([80 x i8]) align 8 %_17, ptr align 8 %1, ptr align 4 %_18)
+          to label %bb11 unwind label %cleanup4, !dbg !8284
+
+bb11:                                             ; preds = %bb10
+; invoke <hello_world::hello_world_module::HelloWorldKernel<cutile::tile_kernel::KernelArgs<()>> as cuda_async::device_operation::DeviceOp>::sync_on
+  invoke void @_RNvYINtNtCs7IX6CBL240Q_11hello_world18hello_world_module16HelloWorldKernelINtNtCslZ6gXNEapY_6cutile11tile_kernel10KernelArgsuEENtNtCs3qVQTR5HMYd_10cuda_async16device_operation8DeviceOp7sync_onB7_(ptr sret([32 x i8]) align 8 %_16, ptr align 8 %_17, ptr align 8 %stream)
+          to label %bb12 unwind label %cleanup4, !dbg !8285
+
+bb12:                                             ; preds = %bb11
+; invoke <core::result::Result<(), cuda_async::error::DeviceError> as core::ops::try_trait::Try>::branch
+  invoke void @_RNvXsp_NtCsgxBkk5gSRhY_4core6resultINtB5_6ResultuNtNtCs3qVQTR5HMYd_10cuda_async5error11DeviceErrorENtNtNtB7_3ops9try_trait3Try6branchBP_(ptr sret([32 x i8]) align 8 %_15, ptr align 8 %_16)
+          to label %bb13 unwind label %cleanup4, !dbg !8283
+
+bb13:                                             ; preds = %bb12
+  %21 = load i64, ptr %_15, align 8, !dbg !8283
+  %22 = icmp eq i64 %21, -1, !dbg !8283
+  %_20 = select i1 %22, i64 0, i64 1, !dbg !8283
+  %23 = trunc nuw i64 %_20 to i1, !dbg !8283
+  br i1 %23, label %bb15, label %bb14, !dbg !8283
+
+bb15:                                             ; preds = %bb13
+  call void @llvm.memcpy.p0.p0.i64(ptr align 8 %residual, ptr align 8 %_15, i64 32, i1 false), !dbg !8286
+  call void @llvm.memcpy.p0.p0.i64(ptr align 8 %0, ptr align 8 %residual, i64 32, i1 false), !dbg !8287
+; invoke <core::result::Result<(), cutile::error::Error> as core::ops::try_trait::FromResidual<core::result::Result<core::convert::Infallible, cuda_async::error::DeviceError>>>::from_residual
+  invoke void @_RNvXsq_NtCsgxBkk5gSRhY_4core6resultINtB5_6ResultuNtNtCslZ6gXNEapY_6cutile5error5ErrorEINtNtNtB7_3ops9try_trait12FromResidualIBy_NtNtB7_7convert10InfallibleNtNtCs3qVQTR5HMYd_10cuda_async5error11DeviceErrorEE13from_residualCs7IX6CBL240Q_11hello_world(ptr sret([64 x i8]) align 8 %_0, ptr align 8 %0, ptr align 8 @alloc_b92095452dc071c2c59bdf745765360b)
+          to label %bb16 unwind label %cleanup4, !dbg !8287
+
+bb14:                                             ; preds = %bb13
+  store i64 -1, ptr %_0, align 8, !dbg !8288
+; invoke core::ptr::drop_glue::<alloc::sync::Arc<cuda_core::runtime::Stream>>
+  invoke void @_RINvNtCsgxBkk5gSRhY_4core3ptr9drop_glueINtNtCs6i54tJFfzR_5alloc4sync3ArcNtNtCslDw4XWXMHBm_9cuda_core7runtime6StreamEECs3qVQTR5HMYd_10cuda_async(ptr align 8 %stream)
+          to label %bb17 unwind label %cleanup, !dbg !8281
+
+bb17:                                             ; preds = %bb14
+; call core::ptr::drop_glue::<alloc::sync::Arc<cuda_core::runtime::Device>>
+  call void @_RINvNtCsgxBkk5gSRhY_4core3ptr9drop_glueINtNtCs6i54tJFfzR_5alloc4sync3ArcNtNtCslDw4XWXMHBm_9cuda_core7runtime6DeviceEEB1c_(ptr align 8 %device), !dbg !8274
+  br label %bb19, !dbg !8274
+
+bb19:                                             ; preds = %bb5, %bb18, %bb17
+  ret void, !dbg !8289
+
+bb16:                                             ; preds = %bb15
+; invoke core::ptr::drop_glue::<alloc::sync::Arc<cuda_core::runtime::Stream>>
+  invoke void @_RINvNtCsgxBkk5gSRhY_4core3ptr9drop_glueINtNtCs6i54tJFfzR_5alloc4sync3ArcNtNtCslDw4XWXMHBm_9cuda_core7runtime6StreamEECs3qVQTR5HMYd_10cuda_async(ptr align 8 %stream)
+          to label %bb18 unwind label %cleanup, !dbg !8281
+
+bb18:                                             ; preds = %bb23, %bb16
+; call core::ptr::drop_glue::<alloc::sync::Arc<cuda_core::runtime::Device>>
+  call void @_RINvNtCsgxBkk5gSRhY_4core3ptr9drop_glueINtNtCs6i54tJFfzR_5alloc4sync3ArcNtNtCslDw4XWXMHBm_9cuda_core7runtime6DeviceEEB1c_(ptr align 8 %device), !dbg !8274
+  br label %bb19, !dbg !8274
+
+terminate:                                        ; preds = %bb21, %bb20
+  %24 = landingpad { ptr, i32 }
+          filter [0 x ptr] zeroinitializer
+; call core::panicking::panic_in_cleanup
+  call void @_RNvNtCsgxBkk5gSRhY_4core9panicking16panic_in_cleanup() #16, !dbg !8290
+  unreachable, !dbg !8290
+
+bb23:                                             ; preds = %bb9
+  br label %bb18, !dbg !8278
+
+bb22:                                             ; preds = %bb21
+  %25 = load ptr, ptr %2, align 8, !dbg !8290
+  %26 = getelementptr inbounds i8, ptr %2, i64 8, !dbg !8290
+  %27 = load i32, ptr %26, align 8, !dbg !8290
+  %28 = insertvalue { ptr, i32 } poison, ptr %25, 0, !dbg !8290
+  %29 = insertvalue { ptr, i32 } %28, i32 %27, 1, !dbg !8290
+  resume { ptr, i32 } %29, !dbg !8290
+
+bb3:                                              ; No predecessors!
+  unreachable, !dbg !8291
+}

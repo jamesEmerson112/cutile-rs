@@ -1,0 +1,173 @@
+fn main() -> std::result::Result<(), cutile::error::Error> {
+    let mut _0: std::result::Result<(), cutile::error::Error>;
+    let _1: std::sync::Arc<cuda_core::Device>;
+    let mut _2: std::ops::ControlFlow<std::result::Result<std::convert::Infallible, cuda_core::DriverError>, std::sync::Arc<cuda_core::Device>>;
+    let mut _3: std::result::Result<std::sync::Arc<cuda_core::Device>, cuda_core::DriverError>;
+    let mut _4: isize;
+    let _5: std::result::Result<std::convert::Infallible, cuda_core::DriverError>;
+    let _6: std::sync::Arc<cuda_core::Device>;
+    let mut _8: std::ops::ControlFlow<std::result::Result<std::convert::Infallible, cuda_core::DriverError>, std::sync::Arc<cuda_core::Stream>>;
+    let mut _9: std::result::Result<std::sync::Arc<cuda_core::Stream>, cuda_core::DriverError>;
+    let mut _10: &std::sync::Arc<cuda_core::Device>;
+    let mut _11: isize;
+    let mut _15: std::ops::ControlFlow<std::result::Result<std::convert::Infallible, cuda_async::error::DeviceError>>;
+    let mut _16: std::result::Result<(), cuda_async::error::DeviceError>;
+    let mut _17: hello_world_module::HelloWorldKernel<cutile::tile_kernel::KernelArgs<()>>;
+    let mut _18: (u32, u32, u32);
+    let _19: &std::sync::Arc<cuda_core::Stream>;
+    let mut _20: isize;
+    scope 1 {
+        debug device => _1;
+        let _7: std::sync::Arc<cuda_core::Stream>;
+        let _12: std::result::Result<std::convert::Infallible, cuda_core::DriverError>;
+        let _13: std::sync::Arc<cuda_core::Stream>;
+        scope 6 {
+            debug stream => _7;
+            let _14: hello_world_module::HelloWorldKernel<cutile::tile_kernel::KernelArgs<()>>;
+            scope 11 {
+                debug launcher => _14;
+                let _21: std::result::Result<std::convert::Infallible, cuda_async::error::DeviceError>;
+                scope 12 {
+                    debug residual => _21;
+                    scope 13 {
+                    }
+                }
+                scope 14 {
+                    debug val => const ();
+                    scope 15 {
+                    }
+                }
+            }
+        }
+        scope 7 {
+            debug residual => _12;
+            scope 8 {
+            }
+        }
+        scope 9 {
+            debug val => _13;
+            scope 10 {
+            }
+        }
+    }
+    scope 2 {
+        debug residual => _5;
+        scope 3 {
+        }
+    }
+    scope 4 {
+        debug val => _6;
+        scope 5 {
+        }
+    }
+
+    bb0: {
+        _3 = cuda_core::Device::new(const 0_usize) -> [return: bb1, unwind continue];
+    }
+
+    bb1: {
+        _2 = <std::result::Result<Arc<cuda_core::Device>, DriverError> as std::ops::Try>::branch(move _3) -> [return: bb2, unwind continue];
+    }
+
+    bb2: {
+        _4 = discriminant(_2);
+        switchInt(move _4) -> [0: bb4, 1: bb5, otherwise: bb3];
+    }
+
+    bb3: {
+        unreachable;
+    }
+
+    bb4: {
+        _6 = move ((_2 as Continue).0: std::sync::Arc<cuda_core::Device>);
+        _1 = move _6;
+        _10 = &_1;
+        _9 = cuda_core::Device::new_stream(move _10) -> [return: bb6, unwind: bb21];
+    }
+
+    bb5: {
+        _5 = copy ((_2 as Break).0: std::result::Result<std::convert::Infallible, cuda_core::DriverError>);
+        _0 = <std::result::Result<(), cutile::error::Error> as FromResidual<std::result::Result<Infallible, DriverError>>>::from_residual(copy _5) -> [return: bb19, unwind continue];
+    }
+
+    bb6: {
+        _8 = <std::result::Result<Arc<cuda_core::Stream>, DriverError> as std::ops::Try>::branch(move _9) -> [return: bb7, unwind: bb21];
+    }
+
+    bb7: {
+        _11 = discriminant(_8);
+        switchInt(move _11) -> [0: bb8, 1: bb9, otherwise: bb3];
+    }
+
+    bb8: {
+        _13 = move ((_8 as Continue).0: std::sync::Arc<cuda_core::Stream>);
+        _7 = move _13;
+        _14 = hello_world_kernel() -> [return: bb10, unwind: bb20];
+    }
+
+    bb9: {
+        _12 = copy ((_8 as Break).0: std::result::Result<std::convert::Infallible, cuda_core::DriverError>);
+        _0 = <std::result::Result<(), cutile::error::Error> as FromResidual<std::result::Result<Infallible, DriverError>>>::from_residual(copy _12) -> [return: bb23, unwind: bb21];
+    }
+
+    bb10: {
+        _18 = (const 2_u32, const 2_u32, const 1_u32);
+        _17 = <HelloWorldKernel<cutile::tile_kernel::KernelArgs<()>> as cutile::prelude::TileKernel<(), cutile::tile_kernel::KernelArgs<()>>>::grid(copy _14, move _18) -> [return: bb11, unwind: bb20];
+    }
+
+    bb11: {
+        _19 = &_7;
+        _16 = <HelloWorldKernel<cutile::tile_kernel::KernelArgs<()>> as cuda_async::device_operation::DeviceOp>::sync_on(move _17, copy _19) -> [return: bb12, unwind: bb20];
+    }
+
+    bb12: {
+        _15 = <std::result::Result<(), cuda_async::error::DeviceError> as std::ops::Try>::branch(move _16) -> [return: bb13, unwind: bb20];
+    }
+
+    bb13: {
+        _20 = discriminant(_15);
+        switchInt(move _20) -> [0: bb14, 1: bb15, otherwise: bb3];
+    }
+
+    bb14: {
+        _0 = std::result::Result::<(), cutile::error::Error>::Ok(const ());
+        drop(_7) -> [return: bb17, unwind: bb21];
+    }
+
+    bb15: {
+        _21 = move ((_15 as Break).0: std::result::Result<std::convert::Infallible, cuda_async::error::DeviceError>);
+        _0 = <std::result::Result<(), cutile::error::Error> as FromResidual<std::result::Result<Infallible, cuda_async::error::DeviceError>>>::from_residual(copy _21) -> [return: bb16, unwind: bb20];
+    }
+
+    bb16: {
+        drop(_7) -> [return: bb18, unwind: bb21];
+    }
+
+    bb17: {
+        drop(_1) -> [return: bb19, unwind continue];
+    }
+
+    bb18: {
+        drop(_1) -> [return: bb19, unwind continue];
+    }
+
+    bb19: {
+        return;
+    }
+
+    bb20 (cleanup): {
+        drop(_7) -> [return: bb21, unwind terminate(cleanup)];
+    }
+
+    bb21 (cleanup): {
+        drop(_1) -> [return: bb22, unwind terminate(cleanup)];
+    }
+
+    bb22 (cleanup): {
+        resume;
+    }
+
+    bb23: {
+        goto -> bb18;
+    }
+}

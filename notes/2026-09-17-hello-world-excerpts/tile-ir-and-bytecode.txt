@@ -1,0 +1,175 @@
+cutile setup: using CUDA_TOOLKIT_PATH tileiras at /usr/local/cuda-13.3/bin/tileiras
+[cutile::jit] hello_world_module::hello_world_kernel → JIT compiling...
+=== CUTILE DUMP: ir (hello_world_module) ===
+cuda_tile.module @hello_world_module {
+  entry @hello_world_kernel_entry() di_name = "hello_world_kernel" {
+    %0 = constant <i32: 0> : tile<i32>
+    %1, %2, %3 = get_tile_block_id : tile<i32>
+    %4 = assume bounded<0, ?>, %1 : tile<i32>
+    %5 = assume bounded<0, ?>, %2 : tile<i32>
+    %6 = assume bounded<0, ?>, %3 : tile<i32>
+    %7 = constant <i32: 0> : tile<i32>
+    %9 = constant <i1: 1> : tile<i1>
+    %10 = constant <i32: 1> : tile<i32>
+    %11, %12, %13 = get_tile_block_id : tile<i32>
+    %14 = assume bounded<0, ?>, %11 : tile<i32>
+    %15 = assume bounded<0, ?>, %12 : tile<i32>
+    %16 = assume bounded<0, ?>, %13 : tile<i32>
+    %17 = constant <i32: 0> : tile<i32>
+    %19 = constant <i1: 0> : tile<i1>
+    %20 = constant <i32: 1> : tile<i32>
+    %22 = constant <i1: 1> : tile<i1>
+    %23 = constant <i32: 2> : tile<i32>
+    %24, %25, %26 = get_tile_block_id : tile<i32>
+    %27 = assume bounded<0, ?>, %24 : tile<i32>
+    %28 = assume bounded<0, ?>, %25 : tile<i32>
+    %29 = assume bounded<0, ?>, %26 : tile<i32>
+    %30 = constant <i32: 0> : tile<i32>
+    %32 = constant <i1: 0> : tile<i1>
+    %33 = constant <i32: 1> : tile<i32>
+    %35 = constant <i1: 0> : tile<i1>
+    %36 = constant <i32: 2> : tile<i32>
+    %38 = constant <i1: 1> : tile<i1>
+    assert %38, "program_id: axis must be 0, 1, or 2" : tile<i1>
+    %39 = constant <i32: 0> : tile<i32>
+    %40, %41, %42 = get_num_tile_blocks : tile<i32>
+    %43 = assume bounded<0, ?>, %40 : tile<i32>
+    %44 = assume bounded<0, ?>, %41 : tile<i32>
+    %45 = assume bounded<0, ?>, %42 : tile<i32>
+    %46 = constant <i32: 0> : tile<i32>
+    %48 = constant <i1: 1> : tile<i1>
+    %49 = constant <i32: 1> : tile<i32>
+    %50, %51, %52 = get_num_tile_blocks : tile<i32>
+    %53 = assume bounded<0, ?>, %50 : tile<i32>
+    %54 = assume bounded<0, ?>, %51 : tile<i32>
+    %55 = assume bounded<0, ?>, %52 : tile<i32>
+    %56 = constant <i32: 0> : tile<i32>
+    %58 = constant <i1: 0> : tile<i1>
+    %59 = constant <i32: 1> : tile<i32>
+    %61 = constant <i1: 1> : tile<i1>
+    %62 = constant <i32: 2> : tile<i32>
+    %63, %64, %65 = get_num_tile_blocks : tile<i32>
+    %66 = assume bounded<0, ?>, %63 : tile<i32>
+    %67 = assume bounded<0, ?>, %64 : tile<i32>
+    %68 = assume bounded<0, ?>, %65 : tile<i32>
+    %69 = constant <i32: 0> : tile<i32>
+    %71 = constant <i1: 0> : tile<i1>
+    %72 = constant <i32: 1> : tile<i32>
+    %74 = constant <i1: 0> : tile<i1>
+    %75 = constant <i32: 2> : tile<i32>
+    %77 = constant <i1: 1> : tile<i1>
+    assert %77, "num_programs: axis must be 0, 1, or 2" : tile<i1>
+    %78 = print_tko "Hello, I am program <%i, %i, %i> in a kernel with <%i, %i, %i> programs.\n", %4, %15, %29, %43, %54, %68 : tile<i32>, tile<i32>, tile<i32>, tile<i32>, tile<i32>, tile<i32>
+    return
+  }
+}
+
+=== END ir ===
+
+cutile setup: bytecode version 13.3 from /usr/local/cuda-13.3/include/cuda.h
+=== CUTILE DUMP: bytecode (hello_world_module) ===
+TileIR bytecode v13.3
+
+=== Strings (18) ===
+  [0] "sym_name"
+  [1] "hello_world_kernel_entry"
+  [2] "di_name"
+  [3] "hello_world_kernel"
+  [4] "function_type"
+  [5] "value"
+  [6] "predicate"
+  [7] "message"
+  [8] "program_id: axis must be 0, 1, or 2"
+  [9] "num_programs: axis must be 0, 1, or 2"
+  [10] "str"
+  [11] "Hello, I am program <%i, %i, %i> in a kernel with <%i, %i, %i> programs.\n"
+  [12] "operandSegmentSizes"
+  [13] ""
+  [14] "hello_world.rs"
+  [15] "cutile-examples/examples"
+  [16] "cutile-examples/examples/hello_world.rs"
+  [17] "hello_world_kernel@hello_world:18:7"
+
+=== Types (6) ===
+  [0] () -> ()
+  [1] i32
+  [2] tile<i32>
+  [3] i1
+  [4] tile<i1>
+  [5] token
+
+=== Constants (30) ===
+  [0] 5 bytes
+  [1] 5 bytes
+  [2] 2 bytes
+  [3] 5 bytes
+  [4] 5 bytes
+  [5] 2 bytes
+  [6] 5 bytes
+  [7] 2 bytes
+  [8] 5 bytes
+  [9] 5 bytes
+  [10] 2 bytes
+  [11] 5 bytes
+  [12] 2 bytes
+  [13] 5 bytes
+  [14] 2 bytes
+  [15] 5 bytes
+  [16] 5 bytes
+  [17] 2 bytes
+  [18] 5 bytes
+  [19] 5 bytes
+  [20] 2 bytes
+  [21] 5 bytes
+  [22] 2 bytes
+  [23] 5 bytes
+  [24] 5 bytes
+  [25] 2 bytes
+  [26] 5 bytes
+  [27] 2 bytes
+  [28] 5 bytes
+  [29] 2 bytes
+
+=== Functions (1) ===
+  entry @hello_world_kernel_entry : () -> ()
+    body: 243 bytes, ~243 ops
+
+=== Debug (1 functions) ===
+  di[1] = DIFile(name="hello_world.rs", dir="cutile-examples/examples")
+  di[2] = DICompileUnit(file=di[1])
+  di[3] = DISubprogram(file=di[1], line=13, name="hello_world_kernel", linkage="hello_world_kernel_entry", cu=di[2], scope_line=13)
+  di[4] = DILoc(scope=di[3], "cutile-examples/examples/hello_world.rs":13:0)
+  di[5] = DISubprogram(file=di[1], line=18, name="hello_world_kernel", linkage="hello_world_kernel@hello_world:18:7", cu=di[2], scope_line=18)
+  di[6] = DILoc(scope=di[5], "cutile-examples/examples/hello_world.rs":19:30)
+  di[7] = CallSite(callee=di[6], caller=di[4])
+  di[8] = DILoc(scope=di[5], "cutile-examples/examples/hello_world.rs":19:19)
+  di[9] = CallSite(callee=di[8], caller=di[4])
+  di[10] = DILoc(scope=di[5], "cutile-examples/examples/hello_world.rs":20:30)
+  di[11] = CallSite(callee=di[10], caller=di[4])
+  di[12] = DILoc(scope=di[5], "cutile-examples/examples/hello_world.rs":20:19)
+  di[13] = CallSite(callee=di[12], caller=di[4])
+  di[14] = DILoc(scope=di[5], "cutile-examples/examples/hello_world.rs":21:30)
+  di[15] = CallSite(callee=di[14], caller=di[4])
+  di[16] = DILoc(scope=di[5], "cutile-examples/examples/hello_world.rs":21:19)
+  di[17] = CallSite(callee=di[16], caller=di[4])
+  di[18] = DILoc(scope=di[5], "cutile-examples/examples/hello_world.rs":22:30)
+  di[19] = CallSite(callee=di[18], caller=di[4])
+  di[20] = DILoc(scope=di[5], "cutile-examples/examples/hello_world.rs":22:17)
+  di[21] = CallSite(callee=di[20], caller=di[4])
+  di[22] = DILoc(scope=di[5], "cutile-examples/examples/hello_world.rs":23:30)
+  di[23] = CallSite(callee=di[22], caller=di[4])
+  di[24] = DILoc(scope=di[5], "cutile-examples/examples/hello_world.rs":23:17)
+  di[25] = CallSite(callee=di[24], caller=di[4])
+  di[26] = DILoc(scope=di[5], "cutile-examples/examples/hello_world.rs":24:30)
+  di[27] = CallSite(callee=di[26], caller=di[4])
+  di[28] = DILoc(scope=di[5], "cutile-examples/examples/hello_world.rs":24:17)
+  di[29] = CallSite(callee=di[28], caller=di[4])
+  di[30] = DILoc(scope=di[5], "cutile-examples/examples/hello_world.rs":25:8)
+  di[31] = CallSite(callee=di[30], caller=di[4])
+  di[32] = DILoc(scope=di[3], "cutile-examples/examples/hello_world.rs":18:28)
+  fn 0: [4, 7, 9, 9, 9, 9, 9, 9, 11, 13, 13, 13, 13, 13, 13, 13, 13, 15, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 19, 21, 21, 21, 21, 21, 21, 23, 25, 25, 25, 25, 25, 25, 25, 25, 27, 29, 29, 29, 29, 29, 29, 29, 29, 29, 29, 29, 31, 32]
+
+=== END bytecode ===
+
+[cutile::jit] hello_world_module::hello_world_kernel → JIT compiled in 328.4ms
+CUTILE_JIT_TIMING module=hello_world_module function=hello_world_kernel key=f58cc13741e89a85 stage1_ms=78.032 stage2_ms=239.623 stage2_source=tileiras stage3_ms=10.689 checks_discharged=0 checks_hoisted=0 checks_in_place=0 generics=

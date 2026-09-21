@@ -1,0 +1,250 @@
+pub struct HelloWorldKernel<DI: DeviceOp<Output = ()>> {
+    _const_grid: bool,
+    _grid: (u32, u32, u32),
+    input: Option<DI>,
+    function_generics: Option<Vec<String>>,
+    _phantom: std::marker::PhantomData<()>,
+    _compile_options: CompileOptions,
+    _compile_only: bool,
+}
+impl<DI: DeviceOp<Output = ()>> HelloWorldKernel<DI> {
+    pub fn launch(input: DI) -> Self {
+        Self {
+            _const_grid: false,
+            _grid: (0, 0, 0),
+            input: Some(input),
+            function_generics: None,
+            _phantom: std::marker::PhantomData,
+            _compile_options: CompileOptions::default(),
+            _compile_only: false,
+        }
+    }
+    pub fn compile(mut self) -> Result<(), DeviceError> {
+        self._compile_only = true;
+        self.sync()?;
+        Ok(())
+    }
+    pub fn compile_on(mut self, stream: &Arc<Stream>) -> Result<(), DeviceError> {
+        self._compile_only = true;
+        self.sync_on(stream)?;
+        Ok(())
+    }
+    /// Resolves the specialization identity for this launch without compiling or launching the kernel.
+    pub fn specialize(self) -> Result<Specialization<ModuleAstFn>, DeviceError> {
+        let stream = with_default_device_policy(|policy| policy.next_stream())??;
+        self.specialize_on(&stream)
+    }
+    /// Resolves the specialization identity for this launch on `stream` without compiling or launching the kernel.
+    pub fn specialize_on(
+        self,
+        stream: &Arc<Stream>,
+    ) -> Result<Specialization<ModuleAstFn>, DeviceError> {
+        with_context(move |ctx| value(unsafe { self._resolve_specialization(ctx) }))
+            .sync_on(stream)?
+    }
+    pub fn l1_cache_key(self) -> Result<TileFunctionKey, DeviceError> {
+        Ok(self.specialize()?.into_l1_cache_key())
+    }
+    pub fn l1_cache_key_on(
+        self,
+        stream: &Arc<Stream>,
+    ) -> Result<TileFunctionKey, DeviceError> {
+        Ok(self.specialize_on(stream)?.into_l1_cache_key())
+    }
+    pub fn l2_cache_key(self) -> Result<String, DeviceError> {
+        self.specialize()?
+            .l2_cache_key()
+            .map_err(|error| DeviceError::from(Error::from(error)))
+    }
+    pub fn l2_cache_key_on(self, stream: &Arc<Stream>) -> Result<String, DeviceError> {
+        self.specialize_on(stream)?
+            .l2_cache_key()
+            .map_err(|error| DeviceError::from(Error::from(error)))
+    }
+}
+impl<DI: DeviceOp<Output = ()>> TileKernel<(), DI, ()> for HelloWorldKernel<DI> {
+    fn grid(mut self, grid: (u32, u32, u32)) -> Self {
+        self._grid = grid;
+        self._const_grid = false;
+        self
+    }
+    fn const_grid(mut self, grid: (u32, u32, u32)) -> Self {
+        self._grid = grid;
+        self._const_grid = true;
+        self
+    }
+    fn get_launch_grid(&self) -> (u32, u32, u32) {
+        self._grid
+    }
+    fn generics(mut self, generics: Vec<String>) -> Self {
+        self.function_generics = Some(generics);
+        self
+    }
+    fn compile_options(mut self, options: CompileOptions) -> Self {
+        self._compile_options = options;
+        self
+    }
+}
+impl<DI: DeviceOp<Output = ()>> IntoFuture for HelloWorldKernel<DI> {
+    type Output = Result<(), DeviceError>;
+    type IntoFuture = DeviceFuture<(), HelloWorldKernel<DI>>;
+    fn into_future(self) -> Self::IntoFuture {
+        match with_default_device_policy(|policy| {
+            let stream = policy.next_stream()?;
+            Ok(DeviceFuture::scheduled(self, ExecutionContext::new(stream)))
+        }) {
+            Ok(Ok(future)) => future,
+            Ok(Err(e)) => DeviceFuture::failed(e),
+            Err(e) => DeviceFuture::failed(e),
+        }
+    }
+}
+impl<DI: DeviceOp<Output = ()>> HelloWorldKernel<DI> {
+    unsafe fn _resolve_specialization(
+        mut self,
+        ctx: &ExecutionContext,
+    ) -> Result<Specialization<ModuleAstFn>, DeviceError> {
+        let module_name = "hello_world_module";
+        let function_name = "hello_world_kernel";
+        let input = self.input.take().unwrap();
+        let (): () = input.execute(ctx)?;
+        let function_generics: Vec<String> = vec![];
+        let stride_args: Vec<(String, Vec<i32>)> = vec![];
+        let spec_args: Vec<
+            (String, cutile::cutile_compiler::specialization::SpecializationBits),
+        > = vec![];
+        let scalar_hints: Vec<
+            (String, cutile::cutile_compiler::specialization::DivHint),
+        > = vec![];
+        let const_grid = if self._const_grid { Some(self._grid) } else { None };
+        let compile_options = std::mem::take(&mut self._compile_options);
+        return Ok(
+            _specialization_from_context(
+                ctx,
+                __module_ast_self as ModuleAstFn,
+                module_name,
+                function_name,
+                function_generics,
+                stride_args,
+                spec_args,
+                scalar_hints,
+                const_grid,
+                compile_options,
+                _SOURCE_HASH,
+            ),
+        );
+    }
+}
+impl<DI: DeviceOp<Output = ()>> DeviceOp for HelloWorldKernel<DI> {
+    type Output = ();
+    unsafe fn execute(
+        mut self,
+        ctx: &ExecutionContext,
+    ) -> Result<<Self as DeviceOp>::Output, DeviceError> {
+        let module_name = "hello_world_module";
+        let function_name = "hello_world_kernel";
+        let function_entry = "hello_world_kernel_entry";
+        let input = self.input.take().unwrap();
+        let (): () = input.execute(ctx)?;
+        let function_generics: Vec<String> = vec![];
+        let __specs: Vec<&cutile::cutile_compiler::specialization::SpecializationBits> = vec![];
+        let __hint_vals: Vec<cutile::cutile_compiler::specialization::DivHint> = vec![];
+        static __SITE: cutile::tile_kernel::LaunchSite = cutile::tile_kernel::LaunchSite::new();
+        let __const_grid = if self._const_grid { Some(self._grid) } else { None };
+        let __compile_options = std::mem::take(&mut self._compile_options);
+        let __site_hit = __SITE
+            .get(
+                ctx.get_device_id(),
+                &function_generics,
+                &__specs,
+                &__hint_vals,
+                __const_grid,
+                &__compile_options,
+            );
+        let (function, validator) = if let Some(__hit) = __site_hit {
+            __hit
+        } else {
+            let stride_args: Vec<(String, Vec<i32>)> = vec![];
+            let spec_args: Vec<
+                (String, cutile::cutile_compiler::specialization::SpecializationBits),
+            > = vec![];
+            let scalar_hints: Vec<
+                (String, cutile::cutile_compiler::specialization::DivHint),
+            > = vec![];
+            let __generics_snapshot = function_generics.clone();
+            let __specs_snapshot: Vec<
+                cutile::cutile_compiler::specialization::SpecializationBits,
+            > = spec_args.iter().map(|(_, s)| s.clone()).collect();
+            let __hints_snapshot = __hint_vals.clone();
+            let __options_snapshot = __compile_options.clone();
+            let (function, validator) = self
+                .jit_compile(
+                    ctx,
+                    __module_ast_self,
+                    module_name,
+                    function_name,
+                    function_entry,
+                    function_generics,
+                    stride_args,
+                    spec_args,
+                    scalar_hints,
+                    __const_grid,
+                    __compile_options,
+                    _SOURCE_HASH,
+                )?;
+            __SITE
+                .store(
+                    cutile::tile_kernel::SiteResolution::new(
+                        ctx.get_device_id(),
+                        __generics_snapshot,
+                        __specs_snapshot,
+                        __hints_snapshot,
+                        __const_grid,
+                        __options_snapshot,
+                        function.clone(),
+                        validator.clone(),
+                    ),
+                );
+            (function, validator)
+        };
+        let mut param_shapes: Vec<Vec<i32>> = if validator.launch_checks.is_empty() {
+            Vec::new()
+        } else {
+            vec![Vec::new(); validator.params.len()]
+        };
+        let mut view_shapes: Vec<Vec<i32>> = if validator.launch_checks.is_empty() {
+            Vec::new()
+        } else {
+            vec![Vec::new(); validator.params.len()]
+        };
+        let launch_grid: (u32, u32, u32) = self.infer_launch_grid(&[])?;
+        validate_launch_checks(
+            &validator.launch_checks,
+            &param_shapes,
+            &view_shapes,
+            launch_grid,
+        )?;
+        if !self._compile_only {
+            let mut kernel_launch = AsyncKernelLaunch::new(function.clone());
+            kernel_launch
+                .set_launch_config(LaunchConfig {
+                    grid_dim: launch_grid,
+                    block_dim: (1, 1, 1),
+                    shared_mem_bytes: 0,
+                });
+            kernel_launch.execute(ctx)?;
+        }
+        return Ok(());
+    }
+}
+impl<DI: DeviceOp<Output = ()>> GraphNode for HelloWorldKernel<DI>
+where
+    DI: GraphNode,
+{}
+pub fn hello_world_kernel_apply(input: ()) -> HelloWorldKernel<Value<()>> {
+    return HelloWorldKernel::launch(value(input));
+}
+pub fn hello_world_kernel() -> HelloWorldKernel<KernelArgs<()>> {
+    let input = KernelArgs(());
+    return HelloWorldKernel::launch(input);
+}
