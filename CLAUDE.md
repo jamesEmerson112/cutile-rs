@@ -6,7 +6,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 cuTile Rust (`cutile-rs`) lets you write memory-safe, data-race-free GPU kernels in idiomatic Rust. The `#[cutile::module]` proc macro captures each kernel's Rust AST into the host binary, and at first launch the JIT compiles that AST through CUDA Tile IR into a cubin. It is a Cargo workspace at version 0.4.0 whose intra-workspace dependencies are exact-pinned (`=0.4.0`) so the macro, compiler, and runtime always ship in lockstep.
 
-This checkout is a personal fork of NVIDIA's research project, not the upstream repo. `origin` is `jamesEmerson112/cutile-rs` and `upstream` is `NVlabs/cutile-rs`. The fork's `main` is upstream's `main` plus a few fork-only files: this `CLAUDE.md` and the `pod/` directory. See "Fork workflow" below before committing, pushing, or relying on CI.
+This checkout is a personal fork of NVIDIA's research project, not the upstream repo. `origin` is `jamesEmerson112/cutile-rs` and `upstream` is `NVlabs/cutile-rs`. The fork's `main` is upstream's `main` plus a few fork-only files: this `CLAUDE.md`, the `pod/` directory, and the `learning/` directory of study material. See "Fork workflow" below before committing, pushing, or relying on CI.
 
 Requirements from the README: Rust stable 1.89+ (no nightly needed), CUDA 13.2+ for the Tile stack with 13.3 recommended, and an `sm_80`+ GPU. The shared host-side crates (`cuda-bindings`, `cuda-core`, `cuda-async`) support CUDA 13.0+. The toolkit is located via `CUDA_TOOLKIT_PATH`, then `CUDA_HOME`, then standard install paths.
 
@@ -129,7 +129,7 @@ Every op the kernel DSL exposes is declared here with `#[cuda_tile::ty]`, `#[cud
 
 ## Fork workflow
 
-- `main` carries the fork-only files on top of upstream, so sync it with `git fetch upstream && git merge upstream/main && git push origin main`. Do experiments on branches off `main`. For anything meant to go upstream, branch from `upstream/main` instead so `CLAUDE.md` and `pod/` never end up in the PR.
+- `main` carries the fork-only files on top of upstream, so sync it with `git fetch upstream && git merge upstream/main && git push origin main`. Do experiments on branches off `main`. For anything meant to go upstream, branch from `upstream/main` instead so `CLAUDE.md`, `pod/`, and `learning/` never end up in the PR.
 - Upstream's main CI job (`pr.yml`) never runs on this fork: it triggers only on `pull-request/N` branches that NVIDIA's copy-pr-bot creates in the upstream repo, and its jobs need NVIDIA's self-hosted `linux-amd64-cpu16` runners. Only `cargo-deny`, `codeql`, and `pages` trigger on pushes to the fork's `main` (on `ubuntu-latest`), and `pages` will try to deploy GitHub Pages on every such push. No workflow had run on the fork as of 2026-09-16. Treat the command list under "Commands" as the CI substitute and run it on a GPU host.
 - To contribute upstream, push a branch to `origin` and open the PR against `NVlabs/cutile-rs:main`; copy-pr-bot then mirrors it into a `pull-request/N` branch where the real CI runs.
 - Do not edit the CI workflows, `copy-pr-bot.yaml`, or `dependabot.yml` for the fork's convenience; those files are upstream's and changing them creates merge noise on every sync.

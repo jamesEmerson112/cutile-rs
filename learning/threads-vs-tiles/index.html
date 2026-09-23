@@ -1,0 +1,1121 @@
+<title>Threads vs Tiles</title>
+<meta name="description" content="An animated, step-through explainer of how cuTile's tile programming differs from CUDA's thread programming, using one practical case: brightening a photo.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..800&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&family=JetBrains+Mono:wght@400;500;600&display=swap">
+<style>
+:root {
+  --paper: #F2F4EF;
+  --surface: #FBFCF9;
+  --surface-2: #E9EDE4;
+  --well: #DCE1D6;
+  --ink: #1B2117;
+  --muted: #5A6453;
+  --line: #CDD4C6;
+  --green: #76B900;
+  --green-ink: #3E6A00;
+  --green-soft: rgba(118, 185, 0, 0.16);
+  --blue: #2C6FC0;
+  --blue-ink: #1F5596;
+  --blue-soft: rgba(44, 111, 192, 0.14);
+  --orange: #CF5F1B;
+  --orange-soft: rgba(207, 95, 27, 0.14);
+  --code-bg: #EDF0E8;
+  --display: "Archivo", "Arial Narrow", "Helvetica Neue", Arial, sans-serif;
+  --body: "IBM Plex Sans", "Segoe UI", system-ui, -apple-system, sans-serif;
+  --mono: "JetBrains Mono", "SFMono-Regular", Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --paper: #11140F;
+    --surface: #181C15;
+    --surface-2: #1F241B;
+    --well: #262C22;
+    --ink: #E6EBE0;
+    --muted: #9BA591;
+    --line: #313829;
+    --green-ink: #9BDB2E;
+    --green-soft: rgba(118, 185, 0, 0.2);
+    --blue: #6AA9F0;
+    --blue-ink: #9CC6F5;
+    --blue-soft: rgba(106, 169, 240, 0.18);
+    --orange: #F0894A;
+    --orange-soft: rgba(240, 137, 74, 0.18);
+    --code-bg: #141811;
+  }
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --paper: #11140F;
+  --surface: #181C15;
+  --surface-2: #1F241B;
+  --well: #262C22;
+  --ink: #E6EBE0;
+  --muted: #9BA591;
+  --line: #313829;
+  --green-ink: #9BDB2E;
+  --green-soft: rgba(118, 185, 0, 0.2);
+  --blue: #6AA9F0;
+  --blue-ink: #9CC6F5;
+  --blue-soft: rgba(106, 169, 240, 0.18);
+  --orange: #F0894A;
+  --orange-soft: rgba(240, 137, 74, 0.18);
+  --code-bg: #141811;
+}
+
+* { box-sizing: border-box; }
+body {
+  background: var(--paper);
+  color: var(--ink);
+  font: 400 15px/1.55 var(--body);
+  padding-inline: 20px;
+  padding-block: 28px 56px;
+}
+.wrap { max-width: 1120px; margin: 0 auto; display: grid; gap: 28px; }
+
+/* Header */
+.masthead { display: grid; gap: 10px; max-width: 70ch; }
+.eyebrow {
+  font: 600 12px/1 var(--mono);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--green-ink);
+  display: flex; align-items: center; gap: 10px;
+}
+.eyebrow .pix { display: inline-grid; grid-template-columns: repeat(3, 5px); gap: 1px; }
+.eyebrow .pix i { width: 5px; height: 5px; background: var(--green); display: block; }
+.eyebrow .pix i:nth-child(2n) { opacity: 0.45; }
+h1 {
+  font-family: var(--display);
+  font-stretch: 78%;
+  font-weight: 800;
+  font-size: clamp(38px, 6vw, 60px);
+  line-height: 0.95;
+  letter-spacing: -0.01em;
+  margin: 0;
+  text-wrap: balance;
+}
+h1 .vs { color: var(--muted); font-weight: 500; font-stretch: 100%; font-size: 0.5em; vertical-align: 0.35em; margin: 0 0.2em; }
+h1 .threads { color: var(--orange); }
+h1 .tiles { color: var(--blue); }
+.dek { margin: 0; color: var(--muted); font-size: 17px; max-width: 62ch; text-wrap: pretty; }
+.dek strong { color: var(--ink); font-weight: 600; }
+
+/* Player */
+.player {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  display: grid;
+}
+.scenes {
+  list-style: none; margin: 0; padding: 10px;
+  display: flex; flex-wrap: wrap; gap: 6px;
+  border-bottom: 1px solid var(--line);
+}
+.scenes button {
+  font: 500 13px/1 var(--body);
+  color: var(--muted);
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  padding: 8px 10px;
+  display: flex; align-items: center; gap: 8px;
+  cursor: pointer;
+}
+.scenes button .n {
+  font: 600 11px/1 var(--mono);
+  width: 20px; height: 20px; border-radius: 4px;
+  display: grid; place-items: center;
+  background: var(--surface-2); color: var(--muted);
+}
+.scenes button:hover { color: var(--ink); border-color: var(--line); }
+.scenes button[aria-current="step"] { color: var(--ink); background: var(--surface-2); border-color: var(--line); }
+.scenes button[aria-current="step"] .n { background: var(--ink); color: var(--paper); }
+.scenes button.seen .n { background: var(--green-soft); color: var(--green-ink); }
+.scenes button.cuda[aria-current="step"] .n { background: var(--orange); color: #fff; }
+.scenes button.tile[aria-current="step"] .n { background: var(--blue); color: #fff; }
+
+.deck {
+  display: grid;
+  grid-template-columns: minmax(0, 1.85fr) minmax(0, 1fr);
+}
+.stage-wrap { margin: 0; padding: 14px; border-right: 1px solid var(--line); min-width: 0; }
+#stage { display: block; width: 100%; height: auto; max-width: 100%; overflow: visible; }
+.side { padding: 16px; display: grid; align-content: start; gap: 12px; min-width: 0; }
+.side-head { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; }
+.kicker {
+  font: 700 12px/1 var(--display); font-stretch: 90%;
+  text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted);
+}
+.kicker.cuda { color: var(--orange); }
+.kicker.tile { color: var(--blue); }
+.file { font: 400 12px/1 var(--mono); color: var(--muted); }
+
+.code {
+  margin: 0; background: var(--code-bg); border: 1px solid var(--line); border-radius: 6px;
+  overflow-x: auto; padding: 8px 0;
+  font: 400 12.5px/1.6 var(--mono);
+}
+.code ol { list-style: none; margin: 0; padding: 0; min-width: max-content; }
+.code li { display: flex; gap: 12px; padding: 0 12px 0 0; border-left: 3px solid transparent; transition: background 0.25s, border-color 0.25s; }
+.code li .ln { width: 2.2em; text-align: right; color: var(--muted); opacity: 0.6; user-select: none; flex: none; }
+.code li code { font: inherit; white-space: pre; }
+.code li.hl { background: var(--green-soft); border-left-color: var(--green); }
+.code li.hl .ln { opacity: 1; color: var(--green-ink); }
+.code .k { color: var(--blue-ink); font-weight: 600; }
+.code .t { color: var(--green-ink); }
+.code .n { color: var(--orange); }
+.code .c { color: var(--muted); font-style: italic; }
+.code .a { color: var(--muted); }
+
+.facts { margin: 0; display: grid; gap: 0; border-top: 1px solid var(--line); }
+.facts div { display: grid; grid-template-columns: 5.5em 1fr; gap: 10px; padding: 8px 0; border-bottom: 1px solid var(--line); }
+.facts dt { font: 600 11px/1.6 var(--mono); text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); }
+.facts dd { margin: 0; font-size: 14px; font-variant-numeric: tabular-nums; }
+.facts code, .aside code, .caption code, .cheat code, .sources code { font: 500 0.9em var(--mono); background: var(--surface-2); padding: 1px 4px; border-radius: 3px; }
+.aside { margin: 0; font-size: 13px; color: var(--muted); }
+
+.decide h3 { font: 700 13px/1.2 var(--display); font-stretch: 90%; margin: 6px 0 6px; text-transform: uppercase; letter-spacing: 0.06em; }
+.decide h3.you { color: var(--blue); }
+.decide h3.comp { color: var(--green-ink); }
+.decide ul { margin: 0 0 8px; padding-left: 18px; font-size: 14px; display: grid; gap: 4px; }
+
+/* Playground controls */
+.ctl { display: grid; gap: 8px; border: 0; padding: 0; margin: 0; }
+.ctl label, .ctl legend { font: 600 13px/1.3 var(--body); display: flex; justify-content: space-between; width: 100%; padding: 0; }
+.ctl output { font: 600 13px var(--mono); color: var(--green-ink); }
+input[type="range"] { width: 100%; accent-color: var(--green); }
+.seg { display: inline-flex; border: 1px solid var(--line); border-radius: 6px; overflow: hidden; }
+.seg label, .seg button {
+  font: 500 13px/1 var(--mono); padding: 8px 12px; cursor: pointer; background: transparent; color: var(--muted);
+  border: 0; border-right: 1px solid var(--line); display: flex; align-items: center;
+}
+.seg > :last-child { border-right: 0; }
+.seg input { position: absolute; opacity: 0; pointer-events: none; }
+.seg label:has(input:checked), .seg button[aria-pressed="true"] { background: var(--ink); color: var(--paper); }
+.seg label:has(input:focus-visible) { outline: 2px solid var(--green); outline-offset: -2px; }
+
+/* Caption + controls */
+.below { border-top: 1px solid var(--line); padding: 16px 18px; display: grid; gap: 14px; }
+.caption {
+  margin: 0; font-size: 17px; line-height: 1.5; max-width: 72ch; min-height: 3em; text-wrap: pretty;
+}
+.term {
+  font: inherit; color: inherit; background: none; border: 0; padding: 0; cursor: help;
+  text-decoration: underline dotted var(--muted); text-underline-offset: 3px; text-decoration-thickness: 1.5px;
+}
+.term:hover, .term:focus-visible, .term.on { color: var(--green-ink); text-decoration-color: var(--green); outline: none; }
+.termdef { margin: -6px 0 0; font-size: 13.5px; color: var(--muted); min-height: 1.5em; max-width: 72ch; }
+.termdef b { color: var(--ink); font-weight: 600; }
+.controls { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 18px; }
+.transport { display: flex; gap: 8px; }
+.btn {
+  font: 600 14px/1 var(--body); padding: 10px 14px; border-radius: 6px; cursor: pointer;
+  background: var(--surface); color: var(--ink); border: 1px solid var(--line);
+}
+.btn:hover { border-color: var(--muted); }
+.btn.primary { background: var(--green); border-color: var(--green); color: #12170D; min-width: 88px; }
+.btn.primary:hover { filter: brightness(1.05); }
+.btn:disabled { opacity: 0.4; cursor: default; }
+button:focus-visible { outline: 2px solid var(--green); outline-offset: 2px; }
+.progress { flex: 1 1 200px; display: grid; gap: 6px; }
+#stepno { font: 500 12px/1 var(--mono); color: var(--muted); font-variant-numeric: tabular-nums; }
+.bar { height: 4px; background: var(--surface-2); border-radius: 2px; overflow: hidden; }
+.bar i { display: block; height: 100%; width: 0; background: var(--green); transition: width 0.3s; }
+
+/* Cheat sheet */
+.lower { display: grid; grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr); gap: 28px; align-items: start; }
+.lower h2 { font: 800 26px/1.1 var(--display); font-stretch: 80%; margin: 0 0 12px; text-wrap: balance; }
+.table-wrap { overflow-x: auto; }
+.cheat { width: 100%; border-collapse: collapse; font-size: 14px; min-width: 520px; }
+.cheat th, .cheat td { text-align: left; padding: 10px 12px 10px 0; border-bottom: 1px solid var(--line); vertical-align: top; }
+.cheat thead th { font: 700 12px/1 var(--display); font-stretch: 90%; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); }
+.cheat thead th.cuda { color: var(--orange); }
+.cheat thead th.tile { color: var(--blue); }
+.cheat tbody th { font-weight: 600; width: 30%; }
+.sources ul { margin: 0; padding-left: 18px; display: grid; gap: 6px; font-size: 14px; }
+.sources p { margin: 0 0 10px; font-size: 14px; color: var(--muted); }
+
+/* SVG stage */
+#stage { --spd: 1; }
+#stage text { font-family: var(--body); }
+.px { transition: fill calc(380ms / var(--spd)) ease-out; }
+.px-empty { fill: var(--well); }
+.fx { transition: opacity calc(420ms / var(--spd)) ease, stroke calc(300ms / var(--spd)), fill calc(300ms / var(--spd)); }
+.fly { transition: transform calc(850ms / var(--spd)) cubic-bezier(.3, .7, .2, 1), opacity calc(300ms / var(--spd)); }
+#stage.instant, #stage.instant * { transition: none !important; }
+.lbl { font: 600 12.5px var(--display) !important; fill: var(--ink); }
+.lbl .sub { font-family: var(--body); font-weight: 400; fill: var(--muted); }
+.lbl .nm { font-family: var(--mono); font-weight: 600; }
+.note { font: 500 11.5px var(--mono) !important; fill: var(--ink); }
+.note2 { fill: var(--muted); font-weight: 400 !important; }
+.num { font: 500 5.4px var(--mono) !important; pointer-events: none; }
+.op { font: 600 13px var(--mono) !important; fill: var(--green-ink); }
+.arrowline { stroke: var(--muted); stroke-width: 1.5; fill: none; }
+.mk { fill: var(--muted); }
+.thread { fill: var(--orange); }
+.thread.hot { fill: var(--orange); stroke: var(--surface); stroke-width: 1.5; }
+.bracket { stroke: var(--orange); stroke-width: 1.5; fill: none; }
+.brtext { font: 600 10px var(--display) !important; fill: var(--orange); }
+.focus { fill: none; stroke: var(--orange); stroke-width: 2.2; }
+.link { fill: none; stroke: var(--orange); stroke-width: 1.5; stroke-dasharray: 4 3; }
+.tile { fill: var(--blue-soft); stroke: var(--blue); stroke-width: 1.6; }
+.tile.faint { fill: none; stroke-opacity: 0.35; stroke-width: 1; }
+.tile.clear { fill: transparent; }
+.tile.edge { stroke: var(--orange); fill: var(--orange-soft); }
+.tlabel { font: 600 10px var(--mono) !important; fill: var(--blue-ink); }
+.pline { stroke: var(--blue); stroke-width: 1; stroke-dasharray: 3 3; }
+.focusTile { fill: none; stroke: var(--blue); stroke-width: 2.4; }
+.tray { fill: var(--surface-2); stroke: var(--line); }
+.traytitle { font: 600 11px var(--mono) !important; fill: var(--muted); }
+.slot { fill: none; stroke: var(--line); stroke-dasharray: 3 3; }
+.bchip { fill: var(--green); }
+.bchip-t { font: 700 11px var(--mono) !important; fill: #12170D; }
+.bcell { fill: var(--green-soft); stroke: var(--green); stroke-width: 0.8; }
+.btxt { font: 600 5px var(--mono) !important; fill: var(--green-ink); }
+.badge { fill: var(--green); }
+.badge-t { font: 700 10px var(--body) !important; fill: #12170D; }
+.phantom { fill: url(#hatch); stroke: var(--muted); stroke-width: 0.8; stroke-dasharray: 2 2; }
+.hatchline { stroke: var(--muted); stroke-width: 1; opacity: 0.5; }
+.info { font: 400 12px var(--mono) !important; fill: var(--ink); }
+.info .key { fill: var(--muted); }
+.box { fill: var(--surface); stroke: var(--line); }
+.box.lit { stroke: var(--green); fill: var(--green-soft); }
+.boxname { font: 600 12px var(--display) !important; fill: var(--ink); }
+.boxsub { font: 400 10.5px var(--body) !important; fill: var(--muted); }
+.small { font: 500 10px var(--mono) !important; fill: var(--muted); }
+.tilebig { fill: var(--blue-soft); stroke: var(--blue); stroke-width: 1.6; }
+.fine { stroke: var(--blue); stroke-opacity: 0.25; stroke-width: 0.6; fill: none; }
+.band { fill: var(--blue); }
+.b0 { fill-opacity: 0.12; } .b1 { fill-opacity: 0.3; } .b2 { fill-opacity: 0.48; } .b3 { fill-opacity: 0.66; }
+.wrow { fill: var(--surface-2); }
+.wrow.band { fill: var(--blue); }
+.tick { fill: var(--muted); }
+.tick.on { fill: var(--blue); }
+.tick.hot, .stripe { fill: var(--orange); }
+.memdot { fill: var(--green); stroke: var(--surface); stroke-width: 2; }
+.illus { font: italic 400 11px var(--body) !important; fill: var(--muted); }
+
+@media (max-width: 880px) {
+  .deck { grid-template-columns: 1fr; }
+  .stage-wrap { border-right: 0; border-bottom: 1px solid var(--line); padding: 8px; }
+  .lower { grid-template-columns: 1fr; }
+}
+@media (max-width: 520px) {
+  body { padding-inline: 16px; }
+  .scenes button .lab { display: none; }
+  .scenes button[aria-current="step"] .lab { display: inline; }
+  .caption { font-size: 16px; }
+  .below { padding: 14px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  * { transition: none !important; }
+}
+</style>
+
+<div class="wrap">
+  <header class="masthead">
+    <div class="eyebrow"><span class="pix" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span>cuTile Rust · learning notes</div>
+    <h1><span class="threads">Threads</span><span class="vs">vs</span><span class="tiles">Tiles</span></h1>
+    <p class="dek">One practical job, <strong>brightening a photo</strong>, done two ways. CUDA has you write code for a single thread that handles one pixel. cuTile has you write code for a whole tile of pixels, then generates the CUDA thread code for you.</p>
+  </header>
+
+  <section class="player" aria-label="Animated explainer">
+    <ol class="scenes" id="scenes"></ol>
+    <div class="deck">
+      <figure class="stage-wrap">
+        <svg id="stage" viewBox="0 0 640 400" role="img" aria-label="Animated diagram for the current step"></svg>
+      </figure>
+      <aside class="side" id="side" aria-live="off"></aside>
+    </div>
+    <div class="below">
+      <p class="caption" id="caption" aria-live="polite"></p>
+      <p class="termdef" id="termdef">Dotted words are terms. Hover or tap one for a one-line definition.</p>
+      <div class="controls">
+        <div class="transport">
+          <button type="button" class="btn" id="prev" aria-label="Previous step">‹ Back</button>
+          <button type="button" class="btn primary" id="play">Play</button>
+          <button type="button" class="btn" id="next" aria-label="Next step">Next ›</button>
+        </div>
+        <div class="progress">
+          <span id="stepno">Step 1 of 4</span>
+          <div class="bar"><i id="barfill"></i></div>
+        </div>
+        <div class="seg" role="group" aria-label="Animation speed" id="speed">
+          <button type="button" data-s="0.5" aria-pressed="false">0.5×</button>
+          <button type="button" data-s="1" aria-pressed="true">1×</button>
+          <button type="button" data-s="2" aria-pressed="false">2×</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="lower">
+    <div>
+      <h2>Cheat sheet: the same photo, both ways</h2>
+      <div class="table-wrap">
+        <table class="cheat">
+          <thead><tr><th></th><th class="cuda">CUDA C++</th><th class="tile">cuTile Rust</th></tr></thead>
+          <tbody>
+            <tr><th>You write code for</th><td>One thread, which handles one pixel</td><td>One tile program, which handles one block of pixels</td></tr>
+            <tr><th>Units launched for a 16 × 16 photo</th><td>256 threads, in blocks you size</td><td>16 tile programs, from <code>partition([4, 4])</code></td></tr>
+            <tr><th>Finding your data</th><td><code>blockIdx.x * blockDim.x + threadIdx.x</code></td><td><code>x.load_like(z)</code></td></tr>
+            <tr><th>Edge of the data</th><td>Your own <code>if (i &lt; n)</code></td><td>Bounds-checked for you</td></tr>
+            <tr><th>Threads, warps, shared memory</th><td>You choose and manage them</td><td>The compiler chooses</td></tr>
+            <tr><th>Does CUDA still run?</th><td>It is CUDA</td><td>Yes. cuTile compiles to a cubin that CUDA launches</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <div class="sources">
+      <h2>Where this comes from</h2>
+      <p>Every claim here follows the cuTile book in this repo.</p>
+      <ul>
+        <li><code>cutile-book/guide/useful-mental-models.md</code> covers threads vs tiles, grid geometry, and the memory hierarchy.</li>
+        <li><code>cutile-book/guide/tensors-and-tiles.md</code> has the <code>scale</code> kernel used here as <code>brighten</code>.</li>
+        <li><code>cutile-book/tutorials/02-vector-addition.md</code> covers partitioning and the grid.</li>
+        <li><code>cutile-book/tutorials/03-saxpy.md</code> explains broadcasting a scalar.</li>
+      </ul>
+    </div>
+  </section>
+</div>
+
+<script>
+(() => {
+"use strict";
+const NS = "http://www.w3.org/2000/svg";
+const stage = document.getElementById("stage");
+const REDUCED = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+const READ_MS = 3800;
+const S = { scene: 0, step: 0, playing: false, speed: 1, timers: [], sideFor: -1 };
+const PLAY = { alpha: 1.5, t: 4 };
+let ctx = {};
+let INSTANT = false;
+
+/* ---------- helpers ---------- */
+function el(tag, attrs, parent) {
+  const e = document.createElementNS(NS, tag);
+  if (attrs) for (const k in attrs) {
+    if (k === "text") e.textContent = attrs[k];
+    else e.setAttribute(k, attrs[k]);
+  }
+  if (parent) parent.appendChild(e);
+  return e;
+}
+function later(fn, ms) {
+  if (INSTANT) { fn(); return; }
+  S.timers.push(setTimeout(fn, ms / S.speed));
+}
+function clearTimers() { S.timers.forEach(clearTimeout); S.timers = []; clearTimeout(S.adv); }
+const show = (e, o) => { e.style.opacity = o === undefined ? 1 : o; };
+const hide = (e) => { e.style.opacity = 0; };
+const hidden = (cls) => ({ class: cls + " fx", style: "opacity:0" });
+const gray = (v) => { const g = Math.round(Math.min(1, v) * 255); return `rgb(${g},${g},${g})`; };
+const f2 = (v) => v.toFixed(2);
+const esc = (s) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+function shuffle(a) { for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; }
+
+/* The photo: a sun over hills, generated from a formula, dim on purpose (max 0.60).
+   Values are multiples of 0.02 so that x 1.5 stays exact at two decimals. */
+function makePhoto(N) {
+  const a = [];
+  for (let r = 0; r < N; r++) {
+    const row = [];
+    for (let c = 0; c < N; c++) {
+      const w = (r + 0.5) * 16 / N, u = (c + 0.5) * 16 / N;
+      let v = 0.2 + w * 0.016;
+      const d = Math.hypot(w - 4.3, u - 11);
+      if (d < 2.6) v = 0.6; else if (d < 3.5) v = Math.max(v, 0.46);
+      const h1 = 10.2 + 1.5 * Math.sin(u * 0.42 + 0.6);
+      if (w > h1) v = 0.32 - (w - h1) * 0.02;
+      const h2 = 12.4 + 1.2 * Math.sin(u * 0.63 + 2.4);
+      if (w > h2) v = 0.14;
+      v = Math.round(v * 50) / 50;
+      row.push(Math.min(0.6, Math.max(0.1, v)));
+    }
+    a.push(row);
+  }
+  return a;
+}
+const PH16 = makePhoto(16), PH18 = makePhoto(18);
+
+function defs() {
+  const d = el("defs", null, stage);
+  const m = el("marker", { id: "arr", viewBox: "0 0 10 10", refX: "8", refY: "5", markerWidth: "7", markerHeight: "7", orient: "auto-start-reverse" }, d);
+  el("path", { d: "M0 0 L10 5 L0 10 z", class: "mk" }, m);
+  const p = el("pattern", { id: "hatch", width: "5", height: "5", patternUnits: "userSpaceOnUse", patternTransform: "rotate(45)" }, d);
+  el("line", { x1: "0", y1: "0", x2: "0", y2: "5", class: "hatchline" }, p);
+}
+function lbl(x, y, name, sub, parent) {
+  const t = el("text", { x, y, class: "lbl" }, parent || stage);
+  el("tspan", { class: "nm", text: name }, t);
+  if (sub) el("tspan", { class: "sub", dx: "8", text: sub }, t);
+  return t;
+}
+function notes() {
+  ctx.n1 = el("text", { x: 320, y: 366, "text-anchor": "middle", class: "note" }, stage);
+  ctx.n2 = el("text", { x: 320, y: 385, "text-anchor": "middle", class: "note note2" }, stage);
+}
+function note(a, b) { ctx.n1.textContent = a || ""; ctx.n2.textContent = b || ""; }
+
+function grid(vals, x, y, s, empty, titleFn, parent) {
+  const N = vals.length, g = el("g", null, parent || stage), cells = [];
+  for (let r = 0; r < N; r++) {
+    cells.push([]);
+    for (let c = 0; c < N; c++) {
+      const rc = el("rect", { x: x + c * s, y: y + r * s, width: s - 1, height: s - 1, class: "px" + (empty ? " px-empty" : "") }, g);
+      if (!empty) rc.style.fill = gray(vals[r][c]);
+      if (titleFn) el("title", { text: titleFn(r, c) }, rc);
+      cells[r].push(rc);
+    }
+  }
+  return { g, cells, x, y, s, N, vals };
+}
+function light(G, r, c, a) {
+  const rc = G.cells[r][c];
+  rc.classList.remove("px-empty");
+  rc.style.fill = gray(G.vals[r][c] * a);
+}
+function lightTile(G, tr, tc, t, a) {
+  for (let r = tr * t; r < Math.min(G.N, tr * t + t); r++)
+    for (let c = tc * t; c < Math.min(G.N, tc * t + t); c++) light(G, r, c, a);
+}
+
+/* Layout A: input photo on the left, output on the right. */
+function layoutA(alpha) {
+  const s = 17, W = 16 * s, ix = 24, ox = 344, y = 66;
+  Object.assign(ctx, { s, W, ix, ox, y });
+  lbl(ix, 50, "x", "photo · read-only input");
+  lbl(ox, 50, "z", "output · starts empty");
+  ctx.inG = grid(PH16, ix, y, s, false, (r, c) => `x[${r}][${c}] = ${f2(PH16[r][c])}`);
+  ctx.outG = grid(PH16, ox, y, s, true, (r, c) => `z[${r}][${c}] = ${f2(PH16[r][c])} × ${alpha} = ${f2(PH16[r][c] * alpha)}`);
+  notes();
+}
+function drawTiles(t, withLabels) {
+  const { s, ix, ox, y, W } = ctx, n = 16 / t, T = t * s;
+  const g = el("g", null, stage);
+  ctx.tiles = []; ctx.tlabels = []; ctx.plines = [];
+  for (let k = 1; k < n; k++) {
+    ctx.plines.push(el("line", Object.assign({ x1: ix + k * T - 0.5, y1: y - 3, x2: ix + k * T - 0.5, y2: y + W + 2 }, hidden("pline")), g));
+    ctx.plines.push(el("line", Object.assign({ x1: ix - 3, y1: y + k * T - 0.5, x2: ix + W + 2, y2: y + k * T - 0.5 }, hidden("pline")), g));
+  }
+  for (let tr = 0; tr < n; tr++) {
+    for (let tc = 0; tc < n; tc++) {
+      const rc = el("rect", Object.assign({ x: ox + tc * T + 0.5, y: y + tr * T + 0.5, width: T - 2, height: T - 2, rx: 2 }, hidden("tile")), g);
+      ctx.tiles.push({ tr, tc, rc });
+      if (withLabels) ctx.tlabels.push(el("text", Object.assign({ x: ox + tc * T + T / 2 - 1, y: y + tr * T + T / 2 + 3, "text-anchor": "middle", text: `${tr},${tc}` }, hidden("tlabel")), g));
+    }
+  }
+}
+
+/* ---------- code panels ---------- */
+const CODE = {
+  cuda: { title: "CUDA C++", file: "brighten.cu", cls: "cuda", lines: [
+    "__global__ void brighten(const float* in, float* out,",
+    "                         float alpha, int n) {",
+    "    int i = blockIdx.x * blockDim.x + threadIdx.x;",
+    "    if (i < n) {",
+    "        out[i] = in[i] * alpha;",
+    "    }",
+    "}",
+    "",
+    "// host: 4 blocks × 64 threads = 256 threads",
+    "brighten<<<4, 64>>>(in, out, 1.5f, 256);",
+  ] },
+  tile: { title: "cuTile Rust", file: "brighten.rs", cls: "tile", lines: [
+    "#[cutile::entry()]",
+    "fn brighten<const S: [i32; 2]>(",
+    "    z: &mut Tensor<f32, S>,         // one 4×4 piece",
+    "    x: &Tensor<f32, { [-1, -1] }>,  // the whole photo",
+    "    alpha: f32,",
+    ") {",
+    "    let tile = x.load_like(z);",
+    "    z.store(tile * alpha);",
+    "}",
+    "",
+    "// host (CPU) side",
+    "let _ = brighten(",
+    "    (&mut out).partition([4, 4]),",
+    "    &photo,",
+    "    1.5f32,",
+    ").sync_on(&stream)?;",
+  ] },
+};
+function colorize(src) {
+  let code = src, com = "";
+  const i = src.indexOf("//");
+  if (i >= 0) { code = src.slice(0, i); com = src.slice(i); }
+  let h = esc(code);
+  if (/^\s*#\[/.test(code)) h = `<span class="a">${h}</span>`;
+  else h = h
+    .replace(/\b(fn|let|mut|const|if|void|float|int)\b|__global__/g, '<span class="k">$&</span>')
+    .replace(/\b(Tensor|f32|i32)\b/g, '<span class="t">$&</span>')
+    .replace(/(?<![\w.])(\d+(?:\.\d+)?(?:f32|f)?)\b/g, '<span class="n">$1</span>');
+  return h + (com ? `<span class="c">${esc(com)}</span>` : "");
+}
+function codePanel(key) {
+  const c = CODE[key];
+  const lis = c.lines.map((l, i) => `<li data-l="${i + 1}"><span class="ln">${i + 1}</span><code>${l ? colorize(l) : " "}</code></li>`).join("");
+  return `<div class="side-head"><span class="kicker ${c.cls}">${c.title}</span><span class="file">${c.file}</span></div><pre class="code"><ol>${lis}</ol></pre>`;
+}
+
+/* ---------- glossary ---------- */
+const GLOSS = {
+  tensor: ["tensor", "A multi-dimensional array in GPU memory. The photo is a 16 × 16 tensor."],
+  kernel: ["kernel", "A function that runs on the GPU, launched from ordinary CPU code."],
+  thread: ["thread", "The smallest worker on a GPU. In CUDA, your kernel code runs once per thread."],
+  block: ["thread block", "A group of threads launched together that can share fast on-chip memory. In CUDA you pick its size."],
+  warp: ["warp", "32 threads that the GPU runs in lockstep as one unit."],
+  tile: ["tile", "A fixed-size block of numbers held in registers. cuTile code does math on whole tiles at once."],
+  program: ["tile program", "One running copy of a cuTile kernel. It owns one tile-shaped piece of the output. The book also calls it a tile block."],
+  pid: ["program_id", "A tile program's position in the launch grid, one number per axis."],
+  partition: ["partition", "Cutting a tensor into equal, non-overlapping pieces. Each tile program gets exactly one piece to write."],
+  reg: ["registers", "The fastest storage on the GPU, right next to the math units. Tiles live here while you compute."],
+  hbm: ["HBM", "High-bandwidth memory: the GPU's large main memory, where tensors live between kernels."],
+  broadcast: ["broadcast", "Stretching a smaller value to a bigger shape by repeating it. No extra memory is actually copied."],
+  smem: ["shared memory", "Fast on-chip memory shared by one thread block. In CUDA you manage it by hand."],
+  tma: ["TMA", "Tensor Memory Accelerator: GPU hardware that copies whole tiles between memory levels."],
+  jit: ["JIT", "Just-in-time compilation: the kernel is compiled when the program first launches it, then cached."],
+  cubin: ["cubin", "The compiled GPU binary that the CUDA driver loads and runs."],
+};
+function T(k, label) { return `<button type="button" class="term" data-k="${k}">${label || GLOSS[k][0]}</button>`; }
+
+/* ---------- scenes ---------- */
+const SCENES = [];
+
+/* 1. The job */
+SCENES.push({
+  name: "The job", kind: "",
+  side: () => `<div class="side-head"><span class="kicker">The job</span></div>
+    <dl class="facts">
+      <div><dt>Input</dt><dd><code>x</code>, a 16 × 16 grayscale photo</dd></div>
+      <div><dt>Output</dt><dd><code>z</code>, same size, starts empty</dd></div>
+      <div><dt>Rule</dt><dd><code>z = x × 1.5</code> for every pixel</dd></div>
+      <div><dt>Scale</dt><dd>0.00 is black, 1.00 is white</dd></div>
+      <div><dt>Work</dt><dd>256 independent multiplies</dd></div>
+    </dl>
+    <p class="aside">The photo comes from a small formula, so every number on screen is exact. Hover a pixel to read its value.</p>`,
+  setup() {
+    layoutA(1.5);
+    const { ix, y, s } = ctx;
+    ctx.inG.g.classList.add("fx"); hide(ctx.inG.g);
+    ctx.nums = el("g", hidden(""), stage);
+    for (let r = 0; r < 16; r++) for (let c = 0; c < 16; c++) {
+      const v = PH16[r][c];
+      el("text", { x: ix + c * s + (s - 1) / 2, y: y + r * s + (s - 1) / 2 + 2, "text-anchor": "middle", class: "num", fill: v > 0.44 ? "#111" : "#f2f2f2", text: f2(v) }, ctx.nums);
+    }
+    ctx.arrow = el("g", hidden(""), stage);
+    el("line", { x1: 301, y1: 202, x2: 337, y2: 202, class: "arrowline", "marker-end": "url(#arr)" }, ctx.arrow);
+    el("text", { x: 319, y: 192, "text-anchor": "middle", class: "op", text: "×1.5" }, ctx.arrow);
+  },
+  steps: [
+    { cap: () => `The practical case: brighten a dim photo. On the GPU the photo is a ${T("tensor")}, a 16 × 16 grid of 256 pixels.`,
+      run() { show(ctx.inG.g); note("x: a 16 × 16 photo, 256 pixels", "z: an empty output of the same size"); } },
+    { cap: () => `Zoom in and a photo is only numbers. 0 is black and 1 is white. This one never goes above 0.60, which is why it looks dim.`,
+      run() { show(ctx.nums); note("each square holds one number between 0 and 1", "brightest pixel in this photo: 0.60"); } },
+    { cap: () => `Brightening is one rule for every pixel: new = old × 1.5. No pixel depends on any other, so all 256 multiplies could happen at the same time. That is exactly the work GPUs are built for.`,
+      run() { show(ctx.arrow); note("z[r][c] = x[r][c] × 1.5", "256 independent jobs"); } },
+    { cap: () => `This is the result we want. The real question is how to split the 256 multiplies across the GPU. CUDA and cuTile answer it differently.`, dur: 1500,
+      run() {
+        hide(ctx.nums);
+        for (let r = 0; r < 16; r++) for (let c = 0; c < 16; c++) later(() => light(ctx.outG, r, c, 1.5), (r + c) * 40);
+        note("the goal: every pixel 1.5× brighter", "next: two ways to split up the work");
+      } },
+  ],
+});
+
+/* 2. CUDA */
+SCENES.push({
+  name: "CUDA: threads", kind: "cuda",
+  side: () => codePanel("cuda"),
+  setup() {
+    layoutA(1.5);
+    const { s, ox, y, W, ix } = ctx;
+    ctx.dots = [];
+    const dg = el("g", null, stage);
+    for (let r = 0; r < 16; r++) {
+      ctx.dots.push([]);
+      for (let c = 0; c < 16; c++) ctx.dots[r].push(el("circle", Object.assign({ cx: ox + c * s + 8, cy: y + r * s + 8, r: 2.4 }, hidden("thread")), dg));
+    }
+    ctx.br = [];
+    for (let b = 0; b < 4; b++) {
+      const g = el("g", hidden(""), stage);
+      const x0 = ox + W + 3, y0 = y + b * 4 * s + 2, y1 = y + (b + 1) * 4 * s - 3;
+      el("path", { d: `M${x0} ${y0} h5 V${y1} h-5`, class: "bracket" }, g);
+      const ty = (y0 + y1) / 2;
+      el("text", { x: x0 + 15, y: ty, "text-anchor": "middle", transform: `rotate(-90 ${x0 + 15} ${ty})`, class: "brtext", text: `block ${b}` }, g);
+      ctx.br.push(g);
+    }
+    const r = 10, c = 5;
+    ctx.fIn = el("rect", Object.assign({ x: ix + c * s - 1.5, y: y + r * s - 1.5, width: s + 2, height: s + 2 }, hidden("focus")), stage);
+    ctx.fOut = el("rect", Object.assign({ x: ox + c * s - 1.5, y: y + r * s - 1.5, width: s + 2, height: s + 2 }, hidden("focus")), stage);
+    const ax = ox + c * s + 8, bx = ix + c * s + 8, cy = y + r * s + s;
+    ctx.link = el("path", Object.assign({ d: `M${ax} ${cy} C${ax} ${cy + 60}, ${bx} ${cy + 60}, ${bx} ${cy + 2}`, "marker-end": "url(#arr)" }, hidden("link")), stage);
+  },
+  steps: [
+    { cap: () => `In CUDA you write a ${T("kernel")} for a single ${T("thread")}, then launch one thread per pixel: 4 ${T("block", "thread blocks")} of 64 threads, 256 threads in total.`, hl: [1, 2, 9, 10], dur: 1400,
+      run() {
+        for (let b = 0; b < 4; b++) later(() => {
+          show(ctx.br[b]);
+          for (let r = b * 4; r < b * 4 + 4; r++) for (let c = 0; c < 16; c++) show(ctx.dots[r][c]);
+        }, b * 300);
+        note("each orange dot is one thread", "brackets: 4 thread blocks × 64 threads");
+      } },
+    { cap: () => `Every thread must work out which pixel is its own, using built-in IDs. Follow thread 37 in block 2.`, hl: [3],
+      run() {
+        ctx.dots[10][5].classList.add("hot"); ctx.dots[10][5].setAttribute("r", 4);
+        show(ctx.fOut);
+        note("i = blockIdx.x × blockDim.x + threadIdx.x", "= 2 × 64 + 37 = 165");
+      } },
+    { cap: () => `The photo is stored as one long row of 256 numbers, so index 165 is row 10, column 5. The thread checks that 165 is inside the data. Here every thread passes, but you still have to write the check.`, hl: [4],
+      run() { show(ctx.fIn); show(ctx.link); note("165 = row 10, column 5   ·   165 < 256, so keep going", "the thread reads x at that spot"); } },
+    { cap: () => `Finally the thread does its one multiply, for its one pixel.`, hl: [5],
+      run() {
+        const v = PH16[10][5];
+        light(ctx.outG, 10, 5, 1.5);
+        note(`out[165] = in[165] × 1.5 = ${f2(v)} × 1.5 = ${f2(v * 1.5)}`, "one thread, one pixel, done");
+      } },
+    { cap: () => `All 256 threads do the same, each with its own index math, finishing in no guaranteed order. It works, but every address calculation is yours to get right.`, hl: [3, 4, 5], dur: 2700,
+      run() {
+        hide(ctx.fIn); hide(ctx.fOut); hide(ctx.link);
+        show(ctx.dots[10][5], 0.25);
+        const order = [];
+        for (let r = 0; r < 16; r++) for (let c = 0; c < 16; c++) if (!(r === 10 && c === 5)) order.push([r, c]);
+        shuffle(order).forEach(([r, c], i) => later(() => { light(ctx.outG, r, c, 1.5); show(ctx.dots[r][c], 0.25); }, i * 9));
+        note("256 threads · 256 index calculations · 256 bounds checks", "done in whatever order the hardware picks");
+      } },
+  ],
+});
+
+/* 3. cuTile partition */
+SCENES.push({
+  name: "cuTile: tiles", kind: "tile",
+  side: () => codePanel("tile"),
+  setup() { layoutA(1.5); drawTiles(4, true); },
+  steps: [
+    { cap: () => `cuTile starts from the data instead. Before launch, the host ${T("partition", "partitions")} the output into 4 × 4 pieces. Nobody writes per-pixel code.`, hl: [12, 13], dur: 1100,
+      run() {
+        ctx.tiles.forEach((t, i) => later(() => show(t.rc), i * 50));
+        note("(&mut out).partition([4, 4])", "z is cut into non-overlapping 4 × 4 pieces");
+      } },
+    { cap: () => `cuTile launches one ${T("program", "tile program")} per piece. The grid size comes straight from the partition, so you never pick thread counts.`, hl: [13],
+      run() { note("ceil(16 ÷ 4) × ceil(16 ÷ 4) = 4 × 4 = 16 tile programs", "the same photo needed 256 CUDA threads"); } },
+    { cap: () => `Each tile program knows its place in the grid: ${T("pid")}(0) gives the row and program_id(1) gives the column.`, dur: 900,
+      run() {
+        ctx.tlabels.forEach((t, i) => later(() => show(t), i * 40));
+        note("tile program (row, col) = (program_id(0), program_id(1))", "labels run from 0,0 to 3,3");
+      } },
+    { cap: () => `The kernel body is two lines and never mentions a pixel index. load_like(z) finds the block of the photo that matches this program's piece of z.`, hl: [7, 8],
+      run() {
+        ctx.plines.forEach(show);
+        note("every program: load one tile, multiply, store one tile", "dashed lines: the matching blocks of x");
+      } },
+  ],
+});
+
+/* 4. One tile's life */
+SCENES.push({
+  name: "One tile's life", kind: "tile",
+  side: () => codePanel("tile"),
+  setup() {
+    const s = 12, ix = 16, ox = 432, y = 80;
+    Object.assign(ctx, { s, ix, ox, y });
+    lbl(ix, 62, "x", "photo");
+    lbl(ox, 62, "z", "output");
+    ctx.inG = grid(PH16, ix, y, s, false);
+    ctx.outG = grid(PH16, ox, y, s, true);
+    for (let k = 1; k < 4; k++) {
+      el("line", { x1: ix + k * 48 - 0.5, y1: y - 2, x2: ix + k * 48 - 0.5, y2: y + 193, class: "pline", "stroke-opacity": 0.6 }, stage);
+      el("line", { x1: ix - 2, y1: y + k * 48 - 0.5, x2: ix + 193, y2: y + k * 48 - 0.5, class: "pline", "stroke-opacity": 0.6 }, stage);
+    }
+    for (let tr = 0; tr < 4; tr++) for (let tc = 0; tc < 4; tc++)
+      el("rect", { x: ox + tc * 48 + 0.5, y: y + tr * 48 + 0.5, width: 46, height: 46, rx: 2, class: "tile faint" }, stage);
+    el("rect", { x: 226, y: 64, width: 188, height: 268, rx: 6, class: "tray" }, stage);
+    el("text", { x: 320, y: 84, "text-anchor": "middle", class: "traytitle", text: "registers · tile program (1, 2)" }, stage);
+    el("rect", { x: 239, y: 111, width: 58, height: 58, class: "slot" }, stage);
+    el("rect", { x: 323, y: 111, width: 58, height: 58, class: "slot" }, stage);
+    el("rect", { x: 281, y: 213, width: 58, height: 58, class: "slot" }, stage);
+    const R0 = 4, C0 = 8;
+    ctx.fIn = el("rect", Object.assign({ x: ix + C0 * s - 1.5, y: y + R0 * s - 1.5, width: 4 * s + 2, height: 4 * s + 2 }, hidden("focusTile")), stage);
+    ctx.fOut = el("rect", Object.assign({ x: ox + C0 * s - 1.5, y: y + R0 * s - 1.5, width: 4 * s + 2, height: 4 * s + 2 }, hidden("focusTile")), stage);
+    // loaded tile (flies from x into registers)
+    ctx.gL = el("g", { class: "fly", style: `opacity:0;transform:translate(${ix + C0 * s}px,${y + R0 * s}px)` }, stage);
+    for (let r = 0; r < 4; r++) for (let c = 0; c < 4; c++)
+      el("rect", { x: c * 12, y: r * 12, width: 11, height: 11, fill: gray(PH16[R0 + r][C0 + c]) }, ctx.gL);
+    ctx.times = el("text", Object.assign({ x: 310, y: 145, "text-anchor": "middle", text: "×" }, hidden("op")), stage);
+    ctx.chip = el("g", hidden(""), stage);
+    el("rect", { x: 334, y: 131, width: 36, height: 20, rx: 4, class: "bchip" }, ctx.chip);
+    el("text", { x: 352, y: 145, "text-anchor": "middle", class: "bchip-t", text: "1.5" }, ctx.chip);
+    ctx.bcells = [];
+    for (let r = 0; r < 4; r++) for (let c = 0; c < 4; c++) {
+      const g = el("g", hidden(""), stage);
+      el("rect", { x: 324 + c * 14, y: 112 + r * 14, width: 13, height: 13, class: "bcell" }, g);
+      el("text", { x: 324 + c * 14 + 6.5, y: 112 + r * 14 + 8.5, "text-anchor": "middle", class: "btxt", text: "1.5" }, g);
+      ctx.bcells.push(g);
+    }
+    ctx.eq = el("text", Object.assign({ x: 310, y: 198, "text-anchor": "middle", text: "=" }, hidden("op")), stage);
+    ctx.gR = el("g", { class: "fly", style: "opacity:0;transform:translate(282px,214px)" }, stage);
+    for (let r = 0; r < 4; r++) for (let c = 0; c < 4; c++)
+      el("rect", { x: c * 14, y: r * 14, width: 13, height: 13, fill: gray(PH16[R0 + r][C0 + c] * 1.5) }, ctx.gR);
+    ctx.badge = el("g", hidden(""), stage);
+    el("rect", { x: 346, y: 233, width: 58, height: 18, rx: 9, class: "badge" }, ctx.badge);
+    el("text", { x: 375, y: 245.5, "text-anchor": "middle", class: "badge-t", text: "new tile" }, ctx.badge);
+    const v = PH16[R0][C0];
+    ctx.ex = el("text", Object.assign({ x: 320, y: 300, "text-anchor": "middle", text: `top-left: ${f2(v)} × 1.5 = ${f2(v * 1.5)}` }, hidden("small")), stage);
+    notes();
+  },
+  steps: [
+    { cap: () => `Follow tile program (1, 2). Its piece of z is rows 4 to 7, columns 8 to 11. load_like(z) points at the same block of the photo.`, hl: [7],
+      run() { show(ctx.fIn); show(ctx.fOut); note("program (1, 2) owns rows 4–7, columns 8–11", "same block in x and in z"); } },
+    { cap: () => `The load copies all 16 pixels from ${T("hbm")} into ${T("reg")} as one ${T("tile")}. One call, not 16.`, hl: [7], dur: 900,
+      run() {
+        show(ctx.gL);
+        ctx.gL.style.transform = `translate(240px,112px) scale(${14 / 12})`;
+        note("let tile = x.load_like(z);", "a 4 × 4 tile now sits in registers");
+      } },
+    { cap: () => `alpha is a single number. cuTile ${T("broadcast", "broadcasts")} it to the tile's shape, so the multiply is tile × tile.`, hl: [5, 8], dur: 1100,
+      run() {
+        show(ctx.times); show(ctx.chip);
+        later(() => { hide(ctx.chip); ctx.bcells.forEach((b, i) => later(() => show(b), i * 25)); }, 500);
+        note("alpha = 1.5  becomes  a 4 × 4 tile of 1.5", "no memory is copied; the compiler handles it");
+      } },
+    { cap: () => `One multiply brightens all 16 pixels at once. Tiles are immutable, so this makes a new tile instead of changing the loaded one.`, hl: [8],
+      run() {
+        show(ctx.gL, 0.35); ctx.bcells.forEach((b) => show(b, 0.35));
+        show(ctx.eq); show(ctx.gR); show(ctx.badge); show(ctx.ex);
+        note("tile * alpha", "16 pixels brightened in one operation");
+      } },
+    { cap: () => `store writes the new tile into this program's piece of z, and only there. The partition guarantees that no other program writes it.`, hl: [8], dur: 1100,
+      run() {
+        hide(ctx.badge); hide(ctx.eq); hide(ctx.ex);
+        ctx.gR.style.transform = `translate(${ctx.ox + 8 * ctx.s}px,${ctx.y + 4 * ctx.s}px) scale(${12 / 14})`;
+        later(() => { lightTile(ctx.outG, 1, 2, 4, 1.5); hide(ctx.gR); }, 850);
+        note("z.store(tile * alpha);", "one piece of z is finished");
+      } },
+    { cap: () => `The other 15 tile programs run the same two lines at the same time, finishing in no guaranteed order.`, hl: [7, 8], dur: 2600,
+      run() {
+        hide(ctx.fIn); hide(ctx.fOut);
+        const others = [];
+        for (let tr = 0; tr < 4; tr++) for (let tc = 0; tc < 4; tc++) if (!(tr === 1 && tc === 2)) others.push([tr, tc]);
+        shuffle(others).forEach(([tr, tc], i) => later(() => lightTile(ctx.outG, tr, tc, 4, 1.5), i * 160));
+        note("16 programs × 1 tile each = the whole photo", "each program: load, multiply, store");
+      } },
+  ],
+});
+
+/* 5. Edge tiles */
+SCENES.push({
+  name: "Edge tiles", kind: "tile",
+  side: () => codePanel("tile"),
+  setup() {
+    const s = 13, ix = 40, y = 62, N = 18, T4 = 4 * s;
+    Object.assign(ctx, { s, ix, y });
+    lbl(ix, 46, "z", "an 18 × 18 photo");
+    ctx.G = grid(PH18, ix, y, s, false);
+    ctx.ph = el("g", hidden(""), stage);
+    for (let r = 0; r < 20; r++) for (let c = 0; c < 20; c++)
+      if (r >= N || c >= N) el("rect", { x: ix + c * s, y: y + r * s, width: s - 1, height: s - 1, class: "phantom" }, ctx.ph);
+    ctx.tiles = [];
+    for (let tr = 0; tr < 5; tr++) for (let tc = 0; tc < 5; tc++)
+      ctx.tiles.push({ tr, tc, rc: el("rect", Object.assign({ x: ix + tc * T4 + 0.5, y: y + tr * T4 + 0.5, width: T4 - 2, height: T4 - 2, rx: 2 }, hidden("tile")), stage) });
+    const lines = [
+      ["photo", "18 × 18 pixels"],
+      ["tile", "4 × 4"],
+      ["per side", "ceil(18 ÷ 4) = 5 tiles"],
+      ["grid", "5 × 5 = 25 tile programs"],
+      ["edge tiles", "9, partly outside"],
+      ["outside", "bounds-checked, skipped"],
+      ["in CUDA", "your own if (i < n)"],
+      ["kernel", "unchanged, same 2 lines"],
+    ];
+    ctx.info = lines.map(([k, v], i) => {
+      const t = el("text", Object.assign({ x: 352, y: 96 + i * 28 }, hidden("info")), stage);
+      el("tspan", { class: "key", text: k }, t);
+      el("tspan", { x: 444, text: v }, t);
+      return t;
+    });
+    notes();
+  },
+  steps: [
+    { cap: () => `What if the photo is 18 × 18? 18 doesn't divide evenly by 4, so 4 × 4 tiles don't fit exactly.`,
+      run() { show(ctx.info[0]); show(ctx.info[1]); note("18 ÷ 4 = 4.5", "the tiles don't line up with the edge"); } },
+    { cap: () => `cuTile rounds up. That gives 5 tiles per side and 25 tile programs, and the last row and column of tiles hang past the photo.`, hl: [13], dur: 1200,
+      run() {
+        ctx.tiles.forEach((t, i) => later(() => show(t.rc), i * 35));
+        show(ctx.ph); show(ctx.info[2]); show(ctx.info[3]);
+        note("grid = ceil(shape ÷ tile shape) on each axis", "hatched squares: past the edge of the photo");
+      } },
+    { cap: () => `The out-of-range pixels are bounds-checked for you: never read, never written. In CUDA this is the if (i < n) you write by hand.`,
+      run() {
+        ctx.tiles.forEach((t) => { if (t.tr === 4 || t.tc === 4) t.rc.classList.add("edge"); });
+        show(ctx.info[4]); show(ctx.info[5]); show(ctx.info[6]);
+        note("9 edge tiles (orange) are only partly inside", "their outside pixels are masked off");
+      } },
+    { cap: () => `Same kernel, same two lines, no extra code. All 25 programs run, and only real pixels change.`, hl: [7, 8], dur: 2200,
+      run() {
+        ctx.tiles.forEach((t) => t.rc.classList.add("clear"));
+        shuffle(ctx.tiles.slice()).forEach((t, i) => later(() => lightTile(ctx.G, t.tr, t.tc, 4, 1.5), i * 80));
+        show(ctx.info[7]);
+        note("25 programs ran; only the 324 real pixels changed", "18 × 18 = 324");
+      } },
+  ],
+});
+
+/* 6. Underneath */
+SCENES.push({
+  name: "Underneath", kind: "",
+  side: () => `<div class="side-head"><span class="kicker">Who decides what</span></div>
+    <div class="decide">
+      <h3 class="you">You write</h3>
+      <ul><li>the tile shape, such as <code>partition([64, 64])</code></li><li>which tensors to load</li><li>the math on whole tiles</li></ul>
+      <h3 class="comp">The compiler decides</h3>
+      <ul><li>threads per block and how many warps</li><li>which thread holds which pixels</li><li>shared memory, TMA, and Tensor Cores</li><li>memory access patterns</li></ul>
+    </div>
+    <p class="aside">From the book: “You still choose tile shapes and access patterns. The compiler handles the thread-level mapping.”</p>`,
+  setup() {
+    el("text", { x: 624, y: 30, "text-anchor": "end", class: "illus", text: "illustrative · the compiler picks the real layout" }, stage);
+    // the tile
+    lbl(16, 70, "one tile", "64 × 64 = 4,096 px");
+    el("rect", { x: 16, y: 84, width: 192, height: 192, class: "tilebig" }, stage);
+    ctx.bands = [];
+    for (let i = 0; i < 4; i++) ctx.bands.push(el("rect", Object.assign({ x: 16, y: 84 + i * 48, width: 192, height: 48 }, hidden("band b" + i)), stage));
+    const fine = el("g", null, stage);
+    for (let k = 1; k < 16; k++) {
+      el("line", { x1: 16 + k * 12, y1: 84, x2: 16 + k * 12, y2: 276, class: "fine" }, fine);
+      el("line", { x1: 16, y1: 84 + k * 12, x2: 208, y2: 84 + k * 12, class: "fine" }, fine);
+    }
+    ctx.stripe = el("rect", Object.assign({ x: 16 + 5 * 6, y: 132, width: 6, height: 48 }, hidden("stripe")), stage);
+    // arrow to block
+    ctx.arrow = el("line", Object.assign({ x1: 213, y1: 180, x2: 244, y2: 180, "marker-end": "url(#arr)" }, hidden("arrowline")), stage);
+    // thread block
+    ctx.gB = el("g", hidden(""), stage);
+    lbl(250, 70, "CUDA thread block", "", ctx.gB);
+    el("rect", { x: 250, y: 84, width: 176, height: 192, rx: 4, class: "box" }, ctx.gB);
+    ctx.wrows = []; ctx.ticks = [];
+    for (let i = 0; i < 4; i++) {
+      const y0 = 94 + i * 45;
+      ctx.wrows.push(el("rect", { x: 258, y: y0, width: 160, height: 38, rx: 3, class: "wrow b" + i }, ctx.gB));
+      el("text", { x: 264, y: y0 + 23, class: "small", text: "warp " + i }, ctx.gB);
+      const row = [];
+      for (let j = 0; j < 32; j++) row.push(el("rect", { x: 302 + j * 3.6, y: y0 + 9, width: 2.4, height: 20, class: "tick" }, ctx.gB));
+      ctx.ticks.push(row);
+    }
+    // memory ladder
+    ctx.gM = el("g", hidden(""), stage);
+    lbl(452, 70, "memory", "", ctx.gM);
+    const mem = [["HBM", "tensors live here"], ["L2 cache", "shared by the whole GPU"], ["shared memory", "staging, maybe via TMA"], ["registers", "tiles live here"]];
+    ctx.mboxes = mem.map(([a, b], i) => {
+      const y0 = 84 + i * 48;
+      const r = el("rect", { x: 452, y: y0, width: 172, height: 40, rx: 4, class: "box" }, ctx.gM);
+      el("text", { x: 462, y: y0 + 17, class: "boxname", text: a }, ctx.gM);
+      el("text", { x: 462, y: y0 + 32, class: "boxsub", text: b }, ctx.gM);
+      return r;
+    });
+    ctx.dot = el("circle", { cx: 608, cy: 104, r: 6, class: "memdot fly", style: "transform:translate(0px,0px)" }, ctx.gM);
+    // pipeline
+    ctx.gP = el("g", hidden(""), stage);
+    const steps = ["your Rust", "Tile IR", "tileiras", "cubin", "GPU runs it"];
+    ctx.pboxes = steps.map((t, i) => {
+      const x = 16 + i * 124;
+      const r = el("rect", { x, y: 300, width: 104, height: 34, rx: 4, class: "box" }, ctx.gP);
+      el("text", { x: x + 52, y: 321, "text-anchor": "middle", class: "boxname", text: t }, ctx.gP);
+      if (i < 4) el("line", { x1: x + 106, y1: 317, x2: x + 121, y2: 317, class: "arrowline", "marker-end": "url(#arr)" }, ctx.gP);
+      return r;
+    });
+    notes();
+  },
+  steps: [
+    { cap: () => `cuTile doesn't replace CUDA. It generates the thread-level code for you. Start with a realistic tile: the book's example splits a 1024 × 1024 image into 64 × 64 tiles.`,
+      run() { note("1024 × 1024 ÷ (64 × 64 tiles) = 16 × 16 = 256 tile programs", "each tile program owns 4,096 pixels"); } },
+    { cap: () => `The compiler turns each tile program into one CUDA ${T("block")}, made of ${T("warp", "warps")} of 32 threads. The 4-warp shape here is only an example. The compiler picks the real one.`, dur: 1200,
+      run() {
+        show(ctx.arrow); show(ctx.gB);
+        for (let i = 0; i < 4; i++) later(() => ctx.ticks[i].forEach((t) => t.classList.add("on")), 200 + i * 200);
+        note("one tile program → one CUDA thread block", "here: 4 warps × 32 threads = 128 threads");
+      } },
+    { cap: () => `Each thread gets a slice of the tile. With 128 threads, that is 32 of the 4,096 pixels each. You never write this mapping.`,
+      run() {
+        ctx.bands.forEach((b) => show(b));
+        ctx.wrows.forEach((w) => w.classList.add("band"));
+        ctx.ticks[1][5].classList.add("hot");
+        show(ctx.stripe);
+        note("4,096 pixels ÷ 128 threads = 32 pixels per thread", "orange: thread 5 of warp 1 and its 32 pixels");
+      } },
+    { cap: () => `Getting the tile from ${T("hbm")} down to ${T("reg")} can pass through L2 and ${T("smem")}, or use ${T("tma")}. The compiler picks the route.`, dur: 2000,
+      run() {
+        show(ctx.gM);
+        ctx.mboxes[0].classList.add("lit");
+        for (let i = 1; i < 4; i++) later(() => {
+          ctx.dot.style.transform = `translate(0px,${i * 48}px)`;
+          ctx.mboxes[i - 1].classList.remove("lit");
+          ctx.mboxes[i].classList.add("lit");
+        }, i * 550);
+        note("load_like: HBM → L2 → shared memory → registers", "store goes back up the same ladder");
+      } },
+    { cap: () => `All of this is built at first launch. The ${T("jit")} compiles your Rust tile code through Tile IR and tileiras into a ${T("cubin")}, and CUDA runs it.`, dur: 1800,
+      run() {
+        show(ctx.gP);
+        ctx.pboxes.forEach((b, i) => later(() => b.classList.add("lit"), i * 330));
+        note("compiled once at first launch, then reused from cache", "underneath, it is ordinary CUDA");
+      } },
+  ],
+});
+
+/* 7. Playground */
+SCENES.push({
+  name: "Try it", kind: "tile",
+  side: () => `<div class="side-head"><span class="kicker tile">Playground</span></div>
+    <div class="ctl">
+      <label for="pg-alpha">Brightness <output id="pg-alpha-out" for="pg-alpha">× 1.5</output></label>
+      <input type="range" id="pg-alpha" min="1" max="1.6" step="0.1" value="${PLAY.alpha}">
+    </div>
+    <fieldset class="ctl">
+      <legend>Tile shape</legend>
+      <div class="seg">
+        ${[2, 4, 8].map((t) => `<label for="pg-t${t}"><input type="radio" name="pg-t" id="pg-t${t}" value="${t}" ${PLAY.t === t ? "checked" : ""}>${t} × ${t}</label>`).join("")}
+      </div>
+    </fieldset>
+    <button type="button" class="btn primary" id="pg-run">Run brighten</button>
+    <dl class="facts">
+      <div><dt>Programs</dt><dd id="pg-progs"></dd></div>
+      <div><dt>Each does</dt><dd id="pg-each"></dd></div>
+      <div><dt>CUDA</dt><dd>256 threads of 1 pixel each</dd></div>
+    </dl>
+    <pre class="code"><ol><li class="hl"><span class="ln">13</span><code id="pg-code"></code></li></ol></pre>`,
+  setup() {
+    const { alpha, t } = PLAY, n = 16 / t;
+    layoutA(alpha);
+    drawTiles(t, false);
+    ctx.tiles.forEach((x) => { show(x.rc); x.rc.classList.add("clear"); });
+    ctx.plines.forEach((p) => show(p, 0.7));
+    const q = (id) => document.getElementById(id);
+    q("pg-alpha-out").textContent = "× " + alpha.toFixed(1);
+    q("pg-progs").textContent = `${n} × ${n} = ${n * n} tile programs`;
+    q("pg-each").textContent = `one ${t} × ${t} tile, ${t * t} pixels`;
+    q("pg-code").innerHTML = colorize(`    (&mut out).partition([${t}, ${t}]),`);
+  },
+  steps: [
+    { cap: () => `Your turn. Change the brightness or the tile shape, then run it. Bigger tiles mean fewer tile programs, each doing more work. The kernel code stays the same.`, dur: 2600,
+      run() {
+        const { alpha, t } = PLAY, n = 16 / t;
+        const gap = 2200 / (n * n);
+        shuffle(ctx.tiles.slice()).forEach((x, i) => later(() => lightTile(ctx.outG, x.tr, x.tc, t, alpha), i * gap));
+        note(`${n * n} tile programs, each brightening ${t * t} pixels by × ${alpha.toFixed(1)}`, "CUDA would launch 256 one-pixel threads");
+      } },
+  ],
+});
+
+/* ---------- player ---------- */
+const $ = (id) => document.getElementById(id);
+const scenesEl = $("scenes"), sideEl = $("side"), capEl = $("caption"), defEl = $("termdef");
+const playBtn = $("play");
+
+SCENES.forEach((sc, i) => {
+  const li = document.createElement("li");
+  li.innerHTML = `<button type="button" class="${sc.kind}" data-i="${i}"><span class="n">${i + 1}</span><span class="lab">${sc.name}</span></button>`;
+  scenesEl.appendChild(li);
+});
+scenesEl.addEventListener("click", (e) => {
+  const b = e.target.closest("button[data-i]");
+  if (b) go(+b.dataset.i, 0);
+});
+
+function go(si, st) {
+  clearTimers();
+  S.scene = si; S.step = st;
+  const sc = SCENES[si];
+  if (S.sideFor !== si) {
+    sideEl.innerHTML = sc.side();
+    S.sideFor = si;
+    if (si === SCENES.length - 1) wirePlayground();
+  }
+  INSTANT = true;
+  stage.classList.add("instant");
+  stage.replaceChildren();
+  ctx = {};
+  defs();
+  sc.setup();
+  for (let j = 0; j < st; j++) sc.steps[j].run();
+  stage.getBoundingClientRect();
+  if (!REDUCED) { stage.classList.remove("instant"); INSTANT = false; }
+  const step = sc.steps[st];
+  step.run();
+  INSTANT = false;
+
+  capEl.innerHTML = step.cap();
+  const hl = new Set(step.hl || []);
+  sideEl.querySelectorAll(".code li[data-l]").forEach((li) => li.classList.toggle("hl", hl.has(+li.dataset.l)));
+  scenesEl.querySelectorAll("button").forEach((b, i) => {
+    if (i === si) b.setAttribute("aria-current", "step"); else b.removeAttribute("aria-current");
+    b.classList.toggle("seen", i < si);
+  });
+  $("stepno").textContent = `Scene ${si + 1} of ${SCENES.length} · step ${st + 1} of ${sc.steps.length}`;
+  $("barfill").style.width = ((st + 1) / sc.steps.length * 100) + "%";
+  $("prev").disabled = si === 0 && st === 0;
+  $("next").disabled = isLast();
+  if (S.playing) {
+    if (isLast()) setPlaying(false);
+    else S.adv = setTimeout(advance, ((step.dur || 0) + READ_MS) / S.speed);
+  }
+}
+function isLast() { return S.scene === SCENES.length - 1 && S.step === SCENES[S.scene].steps.length - 1; }
+function advance() {
+  const sc = SCENES[S.scene];
+  if (S.step < sc.steps.length - 1) go(S.scene, S.step + 1);
+  else if (S.scene < SCENES.length - 1) go(S.scene + 1, 0);
+}
+function back() {
+  if (S.step > 0) go(S.scene, S.step - 1);
+  else if (S.scene > 0) go(S.scene - 1, SCENES[S.scene - 1].steps.length - 1);
+}
+function setPlaying(p) {
+  S.playing = p;
+  playBtn.textContent = p ? "Pause" : "Play";
+}
+playBtn.addEventListener("click", () => {
+  if (S.playing) { setPlaying(false); clearTimeout(S.adv); return; }
+  setPlaying(true);
+  if (isLast()) go(0, 0);
+  else advance();
+});
+$("next").addEventListener("click", () => { setPlaying(false); advance(); });
+$("prev").addEventListener("click", () => { setPlaying(false); back(); });
+$("speed").addEventListener("click", (e) => {
+  const b = e.target.closest("button[data-s]");
+  if (!b) return;
+  S.speed = +b.dataset.s;
+  stage.style.setProperty("--spd", S.speed);
+  $("speed").querySelectorAll("button").forEach((x) => x.setAttribute("aria-pressed", x === b ? "true" : "false"));
+});
+document.addEventListener("keydown", (e) => {
+  const tag = (e.target.tagName || "").toLowerCase();
+  if (tag === "input" || tag === "textarea" || tag === "select") return;
+  if (e.key === "ArrowRight") { e.preventDefault(); setPlaying(false); if (!isLast()) advance(); }
+  else if (e.key === "ArrowLeft") { e.preventDefault(); setPlaying(false); back(); }
+  else if (e.key === " " && tag !== "button") { e.preventDefault(); playBtn.click(); }
+});
+
+function wirePlayground() {
+  const a = $("pg-alpha");
+  a.addEventListener("input", () => { PLAY.alpha = Math.round(+a.value * 10) / 10; setPlaying(false); go(S.scene, 0); });
+  sideEl.querySelectorAll('input[name="pg-t"]').forEach((r) => r.addEventListener("change", () => { PLAY.t = +r.value; setPlaying(false); go(S.scene, 0); }));
+  $("pg-run").addEventListener("click", () => { setPlaying(false); go(S.scene, 0); });
+}
+
+/* glossary definitions */
+function showDef(btn) {
+  const g = GLOSS[btn.dataset.k];
+  if (!g) return;
+  document.querySelectorAll(".term.on").forEach((t) => t.classList.remove("on"));
+  btn.classList.add("on");
+  defEl.innerHTML = `<b>${g[0]}</b>: ${g[1]}`;
+}
+capEl.addEventListener("mouseover", (e) => { const t = e.target.closest(".term"); if (t) showDef(t); });
+capEl.addEventListener("focusin", (e) => { const t = e.target.closest(".term"); if (t) showDef(t); });
+capEl.addEventListener("click", (e) => { const t = e.target.closest(".term"); if (t) showDef(t); });
+
+go(0, 0);
+})();
+</script>
